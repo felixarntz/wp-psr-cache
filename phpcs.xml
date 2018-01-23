@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<ruleset name="WP PSR Cache PHPCS Rules">
+	<description>PHPCS rules for WP PSR Cache.</description>
+
+	<rule ref="PSR2" />
+</ruleset>

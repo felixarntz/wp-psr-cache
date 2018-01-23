@@ -1,0 +1,43 @@
+{
+  "name": "felixarntz/wp-psr-cache",
+  "description": "Object cache implementation for WordPress that acts as an adapter for PSR-6 and PSR-16 caching libraries.",
+  "version": "1.0.0",
+  "type": "wordpress-muplugin",
+  "license": "GPL-2.0-or-later",
+  "keywords": [
+    "wordpress",
+    "mu-plugin",
+    "cache",
+    "psr-6",
+    "psr-16",
+    "adapter"
+  ],
+  "homepage": "https://github.com/felixarntz/wp-psr-cache",
+  "authors": [
+    {
+      "name": "Felix Arntz",
+      "email": "felix-arntz@leaves-and-love.net",
+      "homepage": "https://leaves-and-love.net",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/felixarntz/wp-psr-cache/issues"
+  },
+  "autoload": {
+    "psr-4": {
+      "LeavesAndLove\\WpPsrCache\\": "src"
+    }
+  },
+  "require": {
+    "php": "^7.0",
+    "composer/installers": "~1.0",
+    "psr/cache": "*",
+    "psr/simple-cache": "*",
+    "symfony/cache": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "6.2.*",
+    "codeclimate/php-test-reporter": "dev-master"
+  }
+}
