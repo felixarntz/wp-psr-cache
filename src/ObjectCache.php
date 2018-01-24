@@ -79,9 +79,9 @@ final class ObjectCache
      */
     public function setPersistentCache($cache)
     {
-        if (is_a($cache, Psr6::class)) {
+        if ($cache instanceof Psr6) {
             $this->persistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
+        } elseif ($cache instanceof Psr16) {
             $this->persistentCache = new Psr16Adapter($cache);
         } else {
             throw new InvalidArgumentException(
@@ -104,9 +104,9 @@ final class ObjectCache
      */
     public function setNonPersistentCache($cache)
     {
-        if (is_a($cache, Psr6::class)) {
+        if ($cache instanceof Psr6) {
             $this->nonPersistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
+        } elseif ($cache instanceof Psr16) {
             $this->nonPersistentCache = new Psr16Adapter($cache);
         } else {
             throw new InvalidArgumentException(
