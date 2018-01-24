@@ -116,6 +116,8 @@ final class ObjectCacheService
      * Load the API functions needed for WordPress integration.
      *
      * @since 1.0.0
+     *
+     * @codeCoverageIgnore
      */
     public static function loadApi()
     {
