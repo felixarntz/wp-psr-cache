@@ -9,12 +9,9 @@
 
 namespace LeavesAndLove\WpPsrCache;
 
-use Psr\Cache\CacheItemPoolInterface as Psr6;
-use Psr\SimpleCache\CacheInterface as Psr16;
-use Exception;
-use InvalidArgumentException;
-use BadMethodCallException;
-use RuntimeException;
+use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
+use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
+use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
 
 /**
  * WordPress object cache class.
@@ -26,179 +23,36 @@ final class ObjectCache
 
     const DEFAULT_GROUP = 'default';
 
-    /** @var CacheAdapter The persistent cache instance. */
+    /** @var CacheAdapter The persistent cache. */
     private $persistentCache;
 
-    /** @var CacheAdapter The non-persistent cache instance. */
+    /** @var CacheAdapter The non-persistent cache. */
     private $nonPersistentCache;
 
-    /** @var array List of global cache groups. */
-    private $globalGroups = array();
+    /** @var WpCacheKeyGen The key generator. */
+    private $keygen;
 
-    /** @var array List of network cache groups. */
-    private $networkGroups = array();
-
-    /** @var array List of non-persistent cache groups. */
-    private $nonPersistentGroups = array();
-
-    /** @var int Current site ID. */
-    private $siteId;
-
-    /** @var int Current network ID. */
-    private $networkId;
-
-    /** @var ObjectCache The main object cache instance. */
-    private static $instance;
+    /** @var WpCacheRouter The router to detect which cache to use. */
+    private $router;
 
     /**
      * Constructor.
      *
-     * @since 1.0.0
-     *
-     * @param Psr6|Psr16 $persistentCache    Optional. Persistent cache implementation. Default none.
-     * @param Psr6|Psr16 $nonPersistentCache Optional. Non-persistent cache implementation. Default none.
-     */
-    public function __construct($persistentCache = null, $nonPersistentCache = null)
-    {
-        if ($persistentCache) {
-            $this->setPersistentCache($persistentCache);
-        }
-        if ($nonPersistentCache) {
-            $this->setNonPersistentCache($nonPersistentCache);
-        }
-    }
-
-    /**
-     * Set the persistent cache instance.
+     * Set the cache adapters to use for persistent and non-persistent caches.
      *
      * @since 1.0.0
      *
-     * @param Psr6|Psr16 $cache PSR-6 or PSR-16 compatible cache implementation.
-     *
-     * @throws InvalidArgumentException Thrown when the cache implementation is compatible with neither PSR-6 nor PSR-16.
+     * @param CacheAdapter  $persistentCache    Adapter for the persistent cache implementation.
+     * @param CacheAdapter  $nonPersistentCache Adapter for the non-persistent cache implementation.
+     * @param WpCacheKeyGen $keygen             Key generator.
+     * @param WpCacheRouter $router             Router to detect which cache to use.
      */
-    public function setPersistentCache($cache)
+    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen, WpCacheRouter $router)
     {
-        if (is_a($cache, Psr6::class)) {
-            $this->persistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
-            $this->persistentCache = new Psr16Adapter($cache);
-        } else {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Incompatible cache implementation of class "%s" passed for persistent cache.',
-                    get_class($cache)
-                )
-            );
-        }
-    }
-
-    /**
-     * Set the non-persistent cache instance.
-     *
-     * @since 1.0.0
-     *
-     * @param Psr6|Psr16 $cache PSR-6 or PSR-16 compatible cache implementation.
-     *
-     * @throws InvalidArgumentException Thrown when the cache implementation is compatible with neither PSR-6 nor PSR-16.
-     */
-    public function setNonPersistentCache($cache)
-    {
-        if (is_a($cache, Psr6::class)) {
-            $this->nonPersistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
-            $this->nonPersistentCache = new Psr16Adapter($cache);
-        } else {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Incompatible cache implementation of class "%s" passed for non-persistent cache.',
-                    get_class($cache)
-                )
-            );
-        }
-    }
-
-    /**
-     * Add cache groups to consider global groups.
-     *
-     * @since 1.0.0
-     *
-     * @param array $groups The list of groups that are global.
-     */
-    public function addGlobalGroups(array $groups)
-    {
-        $groups             = array_fill_keys($groups, true);
-        $this->globalGroups = array_merge($this->globalGroups, $groups);
-    }
-
-    /**
-     * Add cache groups to consider network groups.
-     *
-     * @since 1.0.0
-     *
-     * @param array $groups The list of groups that are network-specific.
-     */
-    public function addNetworkGroups(array $groups)
-    {
-        $groups              = array_fill_keys($groups, true);
-        $this->networkGroups = array_merge($this->networkGroups, $groups);
-    }
-
-    /**
-     * Add cache groups to consider non-persistent groups.
-     *
-     * @since 1.0.0
-     *
-     * @param array $groups The list of groups that are non-persistent.
-     */
-    public function addNonPersistentGroups(array $groups)
-    {
-        $groups                    = array_fill_keys($groups, true);
-        $this->nonPersistentGroups = array_merge($this->nonPersistentGroups, $groups);
-    }
-
-    /**
-     * Switch the site context.
-     *
-     * @since 1.0.0
-     *
-     * @param int $siteId Site ID to switch the context to.
-     */
-    public function switchSiteContext(int $siteId)
-    {
-        $this->siteId = $siteId;
-    }
-
-    /**
-     * Switch the network context.
-     *
-     * @since 1.0.0
-     *
-     * @param int $networkId Network ID to switch the context to.
-     */
-    public function switchNetworkContext(int $networkId)
-    {
-        $this->networkId = $networkId;
-    }
-
-    /**
-     * Initialize the object cache.
-     *
-     * @since 1.0.0
-     *
-     * @throws RuntimeException Thrown when a required cache implementation has not been provided.
-     */
-    public function init(int $siteId, int $networkId)
-    {
-        $this->switchSiteContext($siteId);
-        $this->switchNetworkContext($networkId);
-
-        if (!$this->persistentCache) {
-            throw new RuntimeException('Persistent cache implementation not provided.');
-        }
-        if (!$this->nonPersistentCache) {
-            throw new RuntimeException('Non-persistent cache implementation not provided.');
-        }
+        $this->persistentCache    = $persistentCache;
+        $this->nonPersistentCache = $nonPersistentCache;
+        $this->keygen             = $keygen;
+        $this->router             = $router;
     }
 
     /**
@@ -208,19 +62,20 @@ final class ObjectCache
      *
      * @param string $key    The key of this item in the cache.
      * @param string $group  Optional. The group of this item in the cache. Default 'default'.
-     * @param bool   $force  Optional. Whether to force an update of the non-persistent cache from the persistent cache. Default false.
-     * @param bool   &$found Optional. Whether the key was found in the cache (passed by reference). Disambiguates a return of false,
-     *                       a storable value. Default false.
+     * @param bool   $force  Optional. Whether to force an update of the non-persistent cache
+     *                       from the persistent cache. Default false.
+     * @param bool   &$found Optional. Whether the key was found in the cache (passed by reference).
+     *                       Disambiguates a return of false, a storable value. Default false.
      * @return mixed The value of the item from the cache, or false in case of cache miss.
      */
     public function get(string $key, string $group = self::DEFAULT_GROUP, bool $force = false, bool &$found = false)
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
         $found = false;
 
-        $nonPersistent = $this->isNonPersistentGroup($group);
+        $nonPersistent = $this->router->isNonPersistentGroup($group);
         if ($nonPersistent || !$force) {
             if ($this->nonPersistentCache->has($key)) {
                 $found = true;
@@ -258,9 +113,9 @@ final class ObjectCache
     public function set(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
@@ -287,21 +142,13 @@ final class ObjectCache
     public function add(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
-            if ($this->nonPersistentCache->has($key)) {
-                return false;
-            }
-
-            return $this->nonPersistentCache->set($key, $value, $expiration);
+        if ($this->router->isNonPersistentGroup($group)) {
+            return !$this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
-        if ($this->persistentCache->has($key)) {
-            return false;
-        }
-
-        if ($this->persistentCache->set($key, $value, $expiration)) {
+        if (!$this->persistentCache->has($key) && $this->persistentCache->set($key, $value, $expiration)) {
             $this->nonPersistentCache->set($key, $value, $expiration);
 
             return true;
@@ -324,21 +171,13 @@ final class ObjectCache
     public function replace(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
-            if (!$this->nonPersistentCache->has($key)) {
-                return false;
-            }
-
-            return $this->nonPersistentCache->set($key, $value, $expiration);
+        if ($this->router->isNonPersistentGroup($group)) {
+            return $this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
-        if (!$this->persistentCache->has($key)) {
-            return false;
-        }
-
-        if ($this->persistentCache->set($key, $value, $expiration)) {
+        if ($this->persistentCache->has($key) && $this->persistentCache->set($key, $value, $expiration)) {
             $this->nonPersistentCache->set($key, $value, $expiration);
 
             return true;
@@ -419,23 +258,15 @@ final class ObjectCache
     public function delete(string $key, string $group = self::DEFAULT_GROUP): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             // If the item is not in the cache, return true.
-            if (!$this->nonPersistentCache->has($key)) {
-                return true;
-            }
-
-            return $this->nonPersistentCache->delete($key);
+            return !$this->nonPersistentCache->has($key) || $this->nonPersistentCache->delete($key);
         }
 
         // If the item is not in the cache, return true.
-        if (!$this->persistentCache->has($key)) {
-            return true;
-        }
-
-        if ($this->persistentCache->delete($key)) {
+        if (!$this->persistentCache->has($key) || $this->persistentCache->delete($key)) {
             $this->nonPersistentCache->delete($key);
 
             return true;
@@ -474,9 +305,9 @@ final class ObjectCache
     public function has(string $key, string $group = self::DEFAULT_GROUP): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->has($key);
         }
 
@@ -510,12 +341,12 @@ final class ObjectCache
         }
 
         $needed = array();
-        foreach ($values as $fullKey => $value ) {
+        foreach ($values as $fullKey => $value) {
             if (false !== $value) {
                 continue;
             }
 
-            if ($this->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
                 continue;
             }
 
@@ -562,7 +393,7 @@ final class ObjectCache
         $nonPersistentNeeded = array();
         $persistentNeeded    = array();
         foreach ($fullValues as $fullKey => $value) {
-            if ($this->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
                 $nonPersistentNeeded[$fullKey] = $value;
                 continue;
             }
@@ -613,8 +444,8 @@ final class ObjectCache
         }
 
         $needed = array();
-        foreach ($fullKeys as $fullKey ) {
-            if ($this->isNonPersistentGroup($groupMap[$fullKey])) {
+        foreach ($fullKeys as $fullKey) {
+            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
                 continue;
             }
 
@@ -629,67 +460,27 @@ final class ObjectCache
     }
 
     /**
-     * Build the full cache key for a given key and group.
+     * Get the key generator used by the object cache.
      *
      * @since 1.0.0
      *
-     * @param string $key   A cache key.
-     * @param string $group A cache group.
-     * @return string The full cache key to use with cache implementations.
+     * @return WpCacheKeyGen Key generator instance.
      */
-    public function buildKey(string $key, string $group): string
+    public function getKeygen(): WpCacheKeyGen
     {
-        switch (true) {
-            case isset($this->globalGroups[$group]):
-                $key = 'global.' . $group . '.' . $key;
-                break;
-            case isset($this->networkGroups[$group]):
-                $key = 'network.' . $this->networkId . '.' . $group . '.' . $key;
-                break;
-            default:
-                $key = 'site.' . $this->siteId . '.' . $group . '.' . $key;
-        }
-
-        return $this->sanitizeKey($key);
+        return $this->keygen;
     }
 
     /**
-     * Sanitize a cache key by replacing unsupported characters.
+     * Get the router used by the object cache.
      *
      * @since 1.0.0
      *
-     * @param string $key A cache key.
-     * @return string The sanitized cache key.
+     * @return WpCacheRouter Router instance.
      */
-    private function sanitizeKey(string $key): string
+    public function getRouter(): WpCacheRouter
     {
-        // The following characters are not supported in PSR-6/PSR-16.
-        $replacements = array(
-            '{'  => '',
-            '}'  => '',
-            '('  => '',
-            ')'  => '',
-            '/'  => '',
-            '\\' => '',
-            '@'  => '',
-            ':'  => '.',
-            ' '  => '', // This is not explicitly forbidden, but causes issues easily.
-        );
-
-        return str_replace(array_keys($replacements), array_values($replacements), $key);
-    }
-
-    /**
-     * Determine whether a cache group is non-persistent.
-     *
-     * @since 1.0.0
-     *
-     * @param string $group A cache group.
-     * @return bool True if the group is non-persistent, false otherwise.
-     */
-    private function isNonPersistentGroup(string $group): bool
-    {
-        return isset($this->nonPersistentGroups[$group]);
+        return $this->router;
     }
 
     /**
@@ -749,38 +540,9 @@ final class ObjectCache
         $fullKeys = array();
 
         foreach ($keys as $key) {
-            $fullKeys[] = $this->buildKey($key, $groups[$key]);
+            $fullKeys[] = $this->keygen->generate($key, $groups[$key]);
         }
 
         return $fullKeys;
-    }
-
-    /**
-     * Load the API functions needed for WordPress integration.
-     *
-     * @since 1.0.0
-     */
-    public static function loadApi()
-    {
-        require_once dirname( __DIR__ ) . '/includes/functions.php';
-    }
-
-    /**
-     * Get the main instance.
-     *
-     * This is a workaround because the static facade doesn't work here.
-     * See https://stackoverflow.com/questions/31039380/callstatic-does-not-call-if-there-exist-a-non-static-function
-     *
-     * @since 1.0.0
-     *
-     * @return static The main object cache instance.
-     */
-    public static function getInstance()
-    {
-        if (null === static::$instance) {
-            static::$instance = new static();
-        }
-
-        return static::$instance;
     }
 }

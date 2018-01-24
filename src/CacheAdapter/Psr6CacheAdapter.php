@@ -1,13 +1,13 @@
 <?php
 /**
- * Class Psr6Adapter
+ * Class Psr6CacheAdapter
  *
  * @package LeavesAndLove\WpPsrCache
  * @license GNU General Public License, version 2
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-namespace LeavesAndLove\WpPsrCache;
+namespace LeavesAndLove\WpPsrCache\CacheAdapter;
 
 use Psr\Cache\CacheItemPoolInterface as Psr6;
 
@@ -16,7 +16,7 @@ use Psr\Cache\CacheItemPoolInterface as Psr6;
  *
  * @since 1.0.0
  */
-class Psr6Adapter implements CacheAdapter
+class Psr6CacheAdapter implements CacheAdapter
 {
 
     /** @var Psr6 PSR-6 cache implementation. */
@@ -48,7 +48,7 @@ class Psr6Adapter implements CacheAdapter
     {
         $item = $this->cache->getItem($key);
 
-        if ( ! $item->isHit() ) {
+        if (!$item->isHit()) {
             return false;
         }
 

@@ -2,5 +2,10 @@
 <ruleset name="WP PSR Cache PHPCS Rules">
 	<description>PHPCS rules for WP PSR Cache.</description>
 
+	<file>./src</file>
+
+	<exclude-pattern type="relative">^/includes/*</exclude-pattern>
+	<exclude-pattern type="relative">^/vendor/*</exclude-pattern>
+
 	<rule ref="PSR2" />
 </ruleset>

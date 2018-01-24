@@ -1,40 +1,21 @@
 <?php
 /**
- * Class Psr16Adapter
+ * Interface CacheAdapter
  *
  * @package LeavesAndLove\WpPsrCache
  * @license GNU General Public License, version 2
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-namespace LeavesAndLove\WpPsrCache;
-
-use Psr\SimpleCache\CacheInterface as Psr16;
+namespace LeavesAndLove\WpPsrCache\CacheAdapter;
 
 /**
- * PSR-16 cache adapter class.
+ * Cache adapter interface.
  *
  * @since 1.0.0
  */
-class Psr16Adapter implements CacheAdapter
+interface CacheAdapter
 {
-
-    /** @var Psr16 PSR-16 cache implementation. */
-    protected $cache;
-
-    /**
-     * Constructor.
-     *
-     * Set the cache implementation.
-     *
-     * @since 1.0.0
-     *
-     * @param Psr16 $cache PSR-16 cache implementation.
-     */
-    public function __construct(Psr16 $cache)
-    {
-        $this->cache = $cache;
-    }
 
     /**
      * Obtain a value from the cache.
@@ -44,10 +25,7 @@ class Psr16Adapter implements CacheAdapter
      * @param string $key The unique key of this item in the cache.
      * @return mixed The value of the item from the cache, or false in case of cache miss.
      */
-    public function get(string $key)
-    {
-        return $this->cache->get($key, false);
-    }
+    public function get(string $key);
 
     /**
      * Store a value in the cache.
@@ -60,12 +38,7 @@ class Psr16Adapter implements CacheAdapter
      *                           in seconds. Default 0 (no expiration).
      * @return bool True on success, false on failure.
      */
-    public function set(string $key, $value, int $expiration = 0): bool
-    {
-        $expiration = 0 === $expiration ? null : $expiration;
-
-        return $this->cache->set($key, $value, $expiration);
-    }
+    public function set(string $key, $value, int $expiration = 0): bool;
 
     /**
      * Delete a value from the cache.
@@ -75,10 +48,7 @@ class Psr16Adapter implements CacheAdapter
      * @param string $key The unique cache key of the item to delete.
      * @return bool True on success, false on failure.
      */
-    public function delete(string $key): bool
-    {
-        return $this->cache->delete($key);
-    }
+    public function delete(string $key): bool;
 
     /**
      * Obtain multiple values from the cache.
@@ -88,16 +58,7 @@ class Psr16Adapter implements CacheAdapter
      * @param array $keys The list of unique keys for the items in the cache.
      * @return array List of key => value pairs. For cache misses, false will be used as value.
      */
-    public function getMultiple(array $keys): array
-    {
-        $values = array();
-
-        foreach ($this->cache->getMultiple($keys, false) as $key => $value) {
-            $values[$key] = $value;
-        }
-
-        return $values;
-    }
+    public function getMultiple(array $keys): array;
 
     /**
      * Store multiple values in the cache.
@@ -109,12 +70,7 @@ class Psr16Adapter implements CacheAdapter
      *                          in seconds. Default 0 (no expiration).
      * @return bool True on success, false on failure.
      */
-    public function setMultiple(array $values, int $expiration = 0): bool
-    {
-        $expiration = 0 === $expiration ? null : $expiration;
-
-        return $this->cache->setMultiple($values, $expiration);
-    }
+    public function setMultiple(array $values, int $expiration = 0): bool;
 
     /**
      * Delete multiple values from the cache.
@@ -124,10 +80,7 @@ class Psr16Adapter implements CacheAdapter
      * @param array $keys The list of unique keys for the items in the cache to delete.
      * @return bool True on success, false on failure.
      */
-    public function deleteMultiple(array $keys): bool
-    {
-        return $this->cache->deleteMultiple($keys);
-    }
+    public function deleteMultiple(array $keys): bool;
 
     /**
      * Determine whether a value is present in the cache.
@@ -137,10 +90,7 @@ class Psr16Adapter implements CacheAdapter
      * @param string $key The unique key of this item.
      * @return bool True if the value is present, false otherwise.
      */
-    public function has(string $key): bool
-    {
-        return $this->cache->has($key);
-    }
+    public function has(string $key): bool;
 
     /**
      * Delete all values from the cache.
@@ -149,8 +99,5 @@ class Psr16Adapter implements CacheAdapter
      *
      * @return bool True on success, false on failure.
      */
-    public function clear(): bool
-    {
-        return $this->cache->clear();
-    }
+    public function clear(): bool;
 }

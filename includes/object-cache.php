@@ -7,11 +7,25 @@
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-use LeavesAndLove\WpPsrCache\ObjectCache;
+use LeavesAndLove\WpPsrCache\ObjectCacheService;
+use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 
 defined( 'ABSPATH' ) || exit;
 
-ObjectCache::loadApi();
+ObjectCacheService::loadApi();
 
-ObjectCache::getInstance()->setPersistentCache( /* Pass the persistent cache instance here. */ );
-ObjectCache::getInstance()->setNonPersistentCache( /* Pass the non-persistent cache instance here. */ );
+/**
+ * Defines and thus starts the object cache.
+ *
+ * @since 1.0.0
+ */
+function wp_psr_start_cache() {
+    $factory = new PsrCacheAdapterFactory();
+
+    $persistentCache    = $factory->create( /* Pass the persistent cache instance here. */ );
+    $nonPersistentCache = $factory->create( /* Pass the non-persistent cache instance here. */ );
+
+    ObjectCacheService::startInstance( $persistentCache, $nonPersistentCache );
+}
+
+wp_psr_start_cache();
