@@ -9,13 +9,6 @@
 
 namespace LeavesAndLove\WpPsrCache;
 
-use Psr\Cache\CacheItemPoolInterface as Psr6;
-use Psr\SimpleCache\CacheInterface as Psr16;
-use Exception;
-use InvalidArgumentException;
-use BadMethodCallException;
-use RuntimeException;
-
 /**
  * WordPress object cache class.
  *
@@ -53,69 +46,17 @@ final class ObjectCache
     /**
      * Constructor.
      *
-     * @since 1.0.0
-     *
-     * @param Psr6|Psr16 $persistentCache    Optional. Persistent cache implementation. Default none.
-     * @param Psr6|Psr16 $nonPersistentCache Optional. Non-persistent cache implementation. Default none.
-     */
-    public function __construct($persistentCache = null, $nonPersistentCache = null)
-    {
-        if ($persistentCache) {
-            $this->setPersistentCache($persistentCache);
-        }
-        if ($nonPersistentCache) {
-            $this->setNonPersistentCache($nonPersistentCache);
-        }
-    }
-
-    /**
-     * Set the persistent cache instance.
+     * Set the cache adapters to use for persistent and non-persistent caches.
      *
      * @since 1.0.0
      *
-     * @param Psr6|Psr16 $cache PSR-6 or PSR-16 compatible cache implementation.
-     *
-     * @throws InvalidArgumentException Thrown when the cache implementation is compatible with neither PSR-6 nor PSR-16.
+     * @param CacheAdapter $persistentCache    Adapter for the persistent cache implementation.
+     * @param CacheAdapter $nonPersistentCache Adapter for the non-persistent cache implementation.
      */
-    public function setPersistentCache($cache)
+    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache)
     {
-        if (is_a($cache, Psr6::class)) {
-            $this->persistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
-            $this->persistentCache = new Psr16Adapter($cache);
-        } else {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Incompatible cache implementation of class "%s" passed for persistent cache.',
-                    get_class($cache)
-                )
-            );
-        }
-    }
-
-    /**
-     * Set the non-persistent cache instance.
-     *
-     * @since 1.0.0
-     *
-     * @param Psr6|Psr16 $cache PSR-6 or PSR-16 compatible cache implementation.
-     *
-     * @throws InvalidArgumentException Thrown when the cache implementation is compatible with neither PSR-6 nor PSR-16.
-     */
-    public function setNonPersistentCache($cache)
-    {
-        if (is_a($cache, Psr6::class)) {
-            $this->nonPersistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
-            $this->nonPersistentCache = new Psr16Adapter($cache);
-        } else {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Incompatible cache implementation of class "%s" passed for non-persistent cache.',
-                    get_class($cache)
-                )
-            );
-        }
+        $this->persistentCache    = $persistentCache;
+        $this->nonPersistentCache = $nonPersistentCache;
     }
 
     /**
@@ -185,20 +126,11 @@ final class ObjectCache
      * Initialize the object cache.
      *
      * @since 1.0.0
-     *
-     * @throws RuntimeException Thrown when a required cache implementation has not been provided.
      */
     public function init(int $siteId, int $networkId)
     {
         $this->switchSiteContext($siteId);
         $this->switchNetworkContext($networkId);
-
-        if (!$this->persistentCache) {
-            throw new RuntimeException('Persistent cache implementation not provided.');
-        }
-        if (!$this->nonPersistentCache) {
-            throw new RuntimeException('Non-persistent cache implementation not provided.');
-        }
     }
 
     /**
