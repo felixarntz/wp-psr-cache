@@ -11,6 +11,7 @@ namespace LeavesAndLove\WpPsrCache;
 
 use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
+use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
 
 /**
  * WordPress object cache class.
@@ -31,8 +32,8 @@ final class ObjectCache
     /** @var WpCacheKeyGen The key generator. */
     protected $keygen;
 
-    /** @var array List of non-persistent cache groups. */
-    protected $nonPersistentGroups = array();
+    /** @var WpCacheRouter The router to detect which cache to use. */
+    protected $router;
 
     /**
      * Constructor.
@@ -44,25 +45,14 @@ final class ObjectCache
      * @param CacheAdapter  $persistentCache    Adapter for the persistent cache implementation.
      * @param CacheAdapter  $nonPersistentCache Adapter for the non-persistent cache implementation.
      * @param WpCacheKeyGen $keygen             Key generator.
+     * @param WpCacheRouter $router             Router to detect which cache to use.
      */
-    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen)
+    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen, WpCacheRouter $router)
     {
         $this->persistentCache    = $persistentCache;
         $this->nonPersistentCache = $nonPersistentCache;
         $this->keygen             = $keygen;
-    }
-
-    /**
-     * Add cache groups to consider non-persistent groups.
-     *
-     * @since 1.0.0
-     *
-     * @param array $groups The list of groups that are non-persistent.
-     */
-    public function addNonPersistentGroups(array $groups)
-    {
-        $groups                    = array_fill_keys($groups, true);
-        $this->nonPersistentGroups = array_merge($this->nonPersistentGroups, $groups);
+        $this->router             = $router;
     }
 
     /**
@@ -81,11 +71,11 @@ final class ObjectCache
     public function get(string $key, string $group = self::DEFAULT_GROUP, bool $force = false, bool &$found = false)
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->getKeygen()->generate($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
         $found = false;
 
-        $nonPersistent = $this->isNonPersistentGroup($group);
+        $nonPersistent = $this->router->isNonPersistentGroup($group);
         if ($nonPersistent || !$force) {
             if ($this->nonPersistentCache->has($key)) {
                 $found = true;
@@ -123,9 +113,9 @@ final class ObjectCache
     public function set(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->getKeygen()->generate($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
@@ -152,9 +142,9 @@ final class ObjectCache
     public function add(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->getKeygen()->generate($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             if ($this->nonPersistentCache->has($key)) {
                 return false;
             }
@@ -189,9 +179,9 @@ final class ObjectCache
     public function replace(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->getKeygen()->generate($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             if (!$this->nonPersistentCache->has($key)) {
                 return false;
             }
@@ -284,9 +274,9 @@ final class ObjectCache
     public function delete(string $key, string $group = self::DEFAULT_GROUP): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->getKeygen()->generate($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             // If the item is not in the cache, return true.
             if (!$this->nonPersistentCache->has($key)) {
                 return true;
@@ -339,9 +329,9 @@ final class ObjectCache
     public function has(string $key, string $group = self::DEFAULT_GROUP): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->getKeygen()->generate($key, $group);
+        $key   = $this->keygen->generate($key, $group);
 
-        if ($this->isNonPersistentGroup($group)) {
+        if ($this->router->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->has($key);
         }
 
@@ -380,7 +370,7 @@ final class ObjectCache
                 continue;
             }
 
-            if ($this->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
                 continue;
             }
 
@@ -427,7 +417,7 @@ final class ObjectCache
         $nonPersistentNeeded = array();
         $persistentNeeded    = array();
         foreach ($fullValues as $fullKey => $value) {
-            if ($this->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
                 $nonPersistentNeeded[$fullKey] = $value;
                 continue;
             }
@@ -479,7 +469,7 @@ final class ObjectCache
 
         $needed = array();
         foreach ($fullKeys as $fullKey) {
-            if ($this->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
                 continue;
             }
 
@@ -506,16 +496,15 @@ final class ObjectCache
     }
 
     /**
-     * Determine whether a cache group is non-persistent.
+     * Get the router used by the object cache.
      *
      * @since 1.0.0
      *
-     * @param string $group A cache group.
-     * @return bool True if the group is non-persistent, false otherwise.
+     * @return WpCacheRouter Router instance.
      */
-    protected function isNonPersistentGroup(string $group): bool
+    public function getRouter(): WpCacheRouter
     {
-        return isset($this->nonPersistentGroups[$group]);
+        return $this->router;
     }
 
     /**
@@ -575,7 +564,7 @@ final class ObjectCache
         $fullKeys = array();
 
         foreach ($keys as $key) {
-            $fullKeys[] = $this->getKeygen()->generate($key, $groups[$key]);
+            $fullKeys[] = $this->keygen->generate($key, $groups[$key]);
         }
 
         return $fullKeys;

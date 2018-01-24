@@ -12,6 +12,8 @@ namespace LeavesAndLove\WpPsrCache;
 use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpPsrCacheKeyGen;
+use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
+use LeavesAndLove\WpPsrCache\CacheRouter\WpPsrCacheRouter;
 use RuntimeException;
 use BadMethodCallException;
 
@@ -39,11 +41,13 @@ final class ObjectCacheService
      * @param CacheAdapter  $nonPersistentCache Adapter for the non-persistent cache implementation.
      * @param WpCacheKeyGen $keygen             Optional. Key generator. By default a WpPsrCacheKeyGen will
      *                                          be instantiated with the current site and network as context.
+     * @param WpCacheRouter $router             Optional. Router to detect which cache to use. By default a
+     *                                          WpPsrCacheRouter will be instantiated.
      * @return ObjectCache The object cache instance provided.
      *
      * @throws RuntimeException Thrown if an object cache instance has already been started.
      */
-    public static function startInstance(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen = null): ObjectCache
+    public static function startInstance(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen = null, WpCacheRouter $router = null): ObjectCache
     {
         if (null !== self::$instance) {
             throw new RuntimeException('Object cache instance already started.');
@@ -53,7 +57,11 @@ final class ObjectCacheService
             $keygen = new WpPsrCacheKeyGen(get_current_blog_id(), get_current_network_id());
         }
 
-        self::$instance = new ObjectCache($persistentCache, $nonPersistentCache, $keygen);
+        if (null === $router) {
+            $router = new WpPsrCacheRouter();
+        }
+
+        self::$instance = new ObjectCache($persistentCache, $nonPersistentCache, $keygen, $router);
 
         return self::$instance;
     }

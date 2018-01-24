@@ -10,6 +10,7 @@
 use LeavesAndLove\WpPsrCache\ObjectCacheService;
 use LeavesAndLove\WpPsrCache\ObjectCache;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
+use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -50,14 +51,14 @@ function wp_cache_add_network_groups( $groups ) {
  * Adds a group or list of groups to the non-persistent cache groups.
  *
  * @since 1.0.0
- * @see ObjectCache::addNonPersistentGroups()
+ * @see WpCacheRouter::addNonPersistentGroups()
  *
  * @param string|array $groups A group or an array of groups to add.
  */
 function wp_cache_add_non_persistent_groups( $groups ) {
     $groups = (array) $groups;
 
-    ObjectCacheService::addNonPersistentGroups( $groups );
+    ObjectCacheService::getRouter()->addNonPersistentGroups( $groups );
 }
 
 /**
