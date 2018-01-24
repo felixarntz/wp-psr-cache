@@ -9,8 +9,6 @@
 
 namespace LeavesAndLove\WpPsrCache\CacheKeyGen;
 
-use InvalidArgumentException;
-
 /**
  * WordPress cache key generator interface.
  *
