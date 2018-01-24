@@ -7,7 +7,7 @@
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-namespace LeavesAndLove\WpPsrCache;
+namespace LeavesAndLove\WpPsrCache\CacheAdapter;
 
 use InvalidArgumentException;
 

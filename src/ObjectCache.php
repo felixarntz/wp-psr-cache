@@ -9,6 +9,8 @@
 
 namespace LeavesAndLove\WpPsrCache;
 
+use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
+
 /**
  * WordPress object cache class.
  *
@@ -140,9 +142,10 @@ final class ObjectCache
      *
      * @param string $key    The key of this item in the cache.
      * @param string $group  Optional. The group of this item in the cache. Default 'default'.
-     * @param bool   $force  Optional. Whether to force an update of the non-persistent cache from the persistent cache. Default false.
-     * @param bool   &$found Optional. Whether the key was found in the cache (passed by reference). Disambiguates a return of false,
-     *                       a storable value. Default false.
+     * @param bool   $force  Optional. Whether to force an update of the non-persistent cache
+     *                       from the persistent cache. Default false.
+     * @param bool   &$found Optional. Whether the key was found in the cache (passed by reference).
+     *                       Disambiguates a return of false, a storable value. Default false.
      * @return mixed The value of the item from the cache, or false in case of cache miss.
      */
     public function get(string $key, string $group = self::DEFAULT_GROUP, bool $force = false, bool &$found = false)
@@ -442,7 +445,7 @@ final class ObjectCache
         }
 
         $needed = array();
-        foreach ($values as $fullKey => $value ) {
+        foreach ($values as $fullKey => $value) {
             if (false !== $value) {
                 continue;
             }
@@ -545,7 +548,7 @@ final class ObjectCache
         }
 
         $needed = array();
-        foreach ($fullKeys as $fullKey ) {
+        foreach ($fullKeys as $fullKey) {
             if ($this->isNonPersistentGroup($groupMap[$fullKey])) {
                 continue;
             }
@@ -694,7 +697,7 @@ final class ObjectCache
      */
     public static function loadApi()
     {
-        require_once dirname( __DIR__ ) . '/includes/functions.php';
+        require_once dirname(__DIR__) . '/includes/functions.php';
     }
 
     /**

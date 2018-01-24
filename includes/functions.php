@@ -100,9 +100,10 @@ function wp_cache_init() {
  *
  * @param string $key    The key of this item in the cache.
  * @param string $group  Optional. The group of this item in the cache. Default empty string.
- * @param bool   $force  Optional. Whether to force an update of the non-persistent cache from the persistent cache. Default false.
- * @param bool   &$found Optional. Whether the key was found in the cache (passed by reference). Disambiguates a return of false,
- *                       a storable value. Default null.
+ * @param bool   $force  Optional. Whether to force an update of the non-persistent cache
+ *                       from the persistent cache. Default false.
+ * @param bool   &$found Optional. Whether the key was found in the cache (passed by reference).
+ *                       Disambiguates a return of false, a storable value. Default null.
  * @return mixed The value of the item from the cache, or false in case of cache miss.
  */
 function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {

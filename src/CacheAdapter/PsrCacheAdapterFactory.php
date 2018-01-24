@@ -7,7 +7,7 @@
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-namespace LeavesAndLove\WpPsrCache;
+namespace LeavesAndLove\WpPsrCache\CacheAdapter;
 
 use Psr\Cache\CacheItemPoolInterface as Psr6;
 use Psr\SimpleCache\CacheInterface as Psr16;
@@ -34,11 +34,11 @@ class PsrCacheAdapterFactory implements CacheAdapterFactory
     public function create($cache): CacheAdapter
     {
         if (is_a($cache, Psr6::class)) {
-            return new Psr6Adapter($cache);
+            return new Psr6CacheAdapter($cache);
         }
 
         if (is_a($cache, Psr16::class)) {
-            return new Psr16Adapter($cache);
+            return new Psr16CacheAdapter($cache);
         }
 
         throw new InvalidArgumentException(
