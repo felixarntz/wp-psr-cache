@@ -145,18 +145,10 @@ final class ObjectCache
         $key   = $this->keygen->generate($key, $group);
 
         if ($this->router->isNonPersistentGroup($group)) {
-            if ($this->nonPersistentCache->has($key)) {
-                return false;
-            }
-
-            return $this->nonPersistentCache->set($key, $value, $expiration);
+            return !$this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
-        if ($this->persistentCache->has($key)) {
-            return false;
-        }
-
-        if ($this->persistentCache->set($key, $value, $expiration)) {
+        if (!$this->persistentCache->has($key) && $this->persistentCache->set($key, $value, $expiration)) {
             $this->nonPersistentCache->set($key, $value, $expiration);
 
             return true;
@@ -182,18 +174,10 @@ final class ObjectCache
         $key   = $this->keygen->generate($key, $group);
 
         if ($this->router->isNonPersistentGroup($group)) {
-            if (!$this->nonPersistentCache->has($key)) {
-                return false;
-            }
-
-            return $this->nonPersistentCache->set($key, $value, $expiration);
+            return $this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
-        if (!$this->persistentCache->has($key)) {
-            return false;
-        }
-
-        if ($this->persistentCache->set($key, $value, $expiration)) {
+        if ($this->persistentCache->has($key) && $this->persistentCache->set($key, $value, $expiration)) {
             $this->nonPersistentCache->set($key, $value, $expiration);
 
             return true;
@@ -278,19 +262,11 @@ final class ObjectCache
 
         if ($this->router->isNonPersistentGroup($group)) {
             // If the item is not in the cache, return true.
-            if (!$this->nonPersistentCache->has($key)) {
-                return true;
-            }
-
-            return $this->nonPersistentCache->delete($key);
+            return !$this->nonPersistentCache->has($key) || $this->nonPersistentCache->delete($key);
         }
 
         // If the item is not in the cache, return true.
-        if (!$this->persistentCache->has($key)) {
-            return true;
-        }
-
-        if ($this->persistentCache->delete($key)) {
+        if (!$this->persistentCache->has($key) || $this->persistentCache->delete($key)) {
             $this->nonPersistentCache->delete($key);
 
             return true;
