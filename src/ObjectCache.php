@@ -79,18 +79,7 @@ final class ObjectCache
      */
     public function setPersistentCache($cache)
     {
-        if (is_a($cache, Psr6::class)) {
-            $this->persistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
-            $this->persistentCache = new Psr16Adapter($cache);
-        } else {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Incompatible cache implementation of class "%s" passed for persistent cache.',
-                    get_class($cache)
-                )
-            );
-        }
+        $this->persistentCache = (new CacheAdapterFactory)->create($cache);
     }
 
     /**
@@ -104,18 +93,7 @@ final class ObjectCache
      */
     public function setNonPersistentCache($cache)
     {
-        if (is_a($cache, Psr6::class)) {
-            $this->nonPersistentCache = new Psr6Adapter($cache);
-        } elseif (is_a($cache, Psr16::class)) {
-            $this->nonPersistentCache = new Psr16Adapter($cache);
-        } else {
-            throw new InvalidArgumentException(
-                sprintf(
-                    'Incompatible cache implementation of class "%s" passed for non-persistent cache.',
-                    get_class($cache)
-                )
-            );
-        }
+        $this->nonPersistentCache = (new CacheAdapterFactory)->create($cache);
     }
 
     /**
