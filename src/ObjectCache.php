@@ -11,9 +11,7 @@ namespace LeavesAndLove\WpPsrCache;
 
 use Psr\Cache\CacheItemPoolInterface as Psr6;
 use Psr\SimpleCache\CacheInterface as Psr16;
-use Exception;
 use InvalidArgumentException;
-use BadMethodCallException;
 use RuntimeException;
 
 /**
