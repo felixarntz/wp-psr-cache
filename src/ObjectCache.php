@@ -27,28 +27,28 @@ final class ObjectCache
     const DEFAULT_GROUP = 'default';
 
     /** @var CacheAdapter The persistent cache instance. */
-    protected $persistentCache;
+    private $persistentCache;
 
     /** @var CacheAdapter The non-persistent cache instance. */
-    protected $nonPersistentCache;
+    private $nonPersistentCache;
 
     /** @var array List of global cache groups. */
-    protected $globalGroups = array();
+    private $globalGroups = array();
 
     /** @var array List of network cache groups. */
-    protected $networkGroups = array();
+    private $networkGroups = array();
 
     /** @var array List of non-persistent cache groups. */
-    protected $nonPersistentGroups = array();
+    private $nonPersistentGroups = array();
 
     /** @var int Current site ID. */
-    protected $siteId;
+    private $siteId;
 
     /** @var int Current network ID. */
-    protected $networkId;
+    private $networkId;
 
     /** @var ObjectCache The main object cache instance. */
-    protected static $instance;
+    private static $instance;
 
     /**
      * Constructor.
@@ -661,7 +661,7 @@ final class ObjectCache
      * @param string $key A cache key.
      * @return string The sanitized cache key.
      */
-    protected function sanitizeKey(string $key): string
+    private function sanitizeKey(string $key): string
     {
         // The following characters are not supported in PSR-6/PSR-16.
         $replacements = array(
@@ -687,7 +687,7 @@ final class ObjectCache
      * @param string $group A cache group.
      * @return bool True if the group is non-persistent, false otherwise.
      */
-    protected function isNonPersistentGroup(string $group): bool
+    private function isNonPersistentGroup(string $group): bool
     {
         return isset($this->nonPersistentGroups[$group]);
     }
@@ -700,7 +700,7 @@ final class ObjectCache
      * @param string $group A cache group.
      * @return string The value of $group, or the default group.
      */
-    protected function parseDefaultGroup(string $group)
+    private function parseDefaultGroup(string $group)
     {
         return empty($group) ? self::DEFAULT_GROUP : $group;
     }
@@ -714,7 +714,7 @@ final class ObjectCache
      * @param array        $keys   A list of keys.
      * @return array List of groups, keyed by their key. The length of the list matches the length of $keys.
      */
-    protected function parseGroupsForKeys($groups, array $keys): array
+    private function parseGroupsForKeys($groups, array $keys): array
     {
         if (is_string($groups)) {
             $groups = $this->parseDefaultGroup($groups);
@@ -744,7 +744,7 @@ final class ObjectCache
      *                      the length of $keys.
      * @return array The list of full cache keys.
      */
-    protected function buildKeys(array $keys, array $groups): array
+    private function buildKeys(array $keys, array $groups): array
     {
         $fullKeys = array();
 
