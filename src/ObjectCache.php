@@ -24,16 +24,16 @@ final class ObjectCache
     const DEFAULT_GROUP = 'default';
 
     /** @var CacheAdapter The persistent cache. */
-    protected $persistentCache;
+    private $persistentCache;
 
     /** @var CacheAdapter The non-persistent cache. */
-    protected $nonPersistentCache;
+    private $nonPersistentCache;
 
     /** @var WpCacheKeyGen The key generator. */
-    protected $keygen;
+    private $keygen;
 
     /** @var WpCacheRouter The router to detect which cache to use. */
-    protected $router;
+    private $router;
 
     /**
      * Constructor.
@@ -491,7 +491,7 @@ final class ObjectCache
      * @param string $group A cache group.
      * @return string The value of $group, or the default group.
      */
-    protected function parseDefaultGroup(string $group)
+    private function parseDefaultGroup(string $group)
     {
         return empty($group) ? self::DEFAULT_GROUP : $group;
     }
@@ -505,7 +505,7 @@ final class ObjectCache
      * @param array        $keys   A list of keys.
      * @return array List of groups, keyed by their key. The length of the list matches the length of $keys.
      */
-    protected function parseGroupsForKeys($groups, array $keys): array
+    private function parseGroupsForKeys($groups, array $keys): array
     {
         if (is_string($groups)) {
             $groups = $this->parseDefaultGroup($groups);
@@ -535,7 +535,7 @@ final class ObjectCache
      *                      the length of $keys.
      * @return array The list of full cache keys.
      */
-    protected function buildKeys(array $keys, array $groups): array
+    private function buildKeys(array $keys, array $groups): array
     {
         $fullKeys = array();
 
