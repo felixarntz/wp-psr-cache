@@ -30,7 +30,7 @@ Then, replace the inline comments in the `object-cache.php` file with the actual
 
 ### Example
 
-The following example uses the `symfony/cache` library, so you have to require it in your `composer.json`.
+The following example uses the `symfony/cache` library, so you have to require it in your `composer.json`. It then uses that library's Memcached implementation as persistent cache and its array storage as non-persistent cache.
 
 ```php
 <?php
@@ -42,19 +42,34 @@ The following example uses the `symfony/cache` library, so you have to require i
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-use LeavesAndLove\WpPsrCache\ObjectCache;
+use LeavesAndLove\WpPsrCache\ObjectCacheService;
+use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 use Symfony\Component\Cache\Simple\MemcachedCache;
 use Symfony\Component\Cache\Simple\ArrayCache;
 
 defined( 'ABSPATH' ) || exit;
 
-$memcached = new Memcached();
-$memcached->addServer( '127.0.0.1', 11211, 20 );
+ObjectCacheService::loadApi();
 
-ObjectCache::loadApi();
+/**
+ * Defines and thus starts the object cache.
+ *
+ * @since 1.0.0
+ */
+function wp_psr_start_cache() {
+    $factory = new PsrCacheAdapterFactory();
 
-ObjectCache::getInstance()->setPersistentCache( new MemcachedCache( $memcached ) );
-ObjectCache::getInstance()->setNonPersistentCache( new ArrayCache() );
+    $memcached = new Memcached();
+	$memcached->addServer( '127.0.0.1', 11211, 20 );
+
+    $persistentCache    = $factory->create( new MemcachedCache( $memcached ) );
+    $nonPersistentCache = $factory->create( new ArrayCache() );
+
+    ObjectCacheService::startInstance( $persistentCache, $nonPersistentCache );
+}
+
+wp_psr_start_cache();
+
 ```
 
 ## Requirements
