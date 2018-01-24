@@ -42,9 +42,6 @@ final class ObjectCache
     /** @var int Current network ID. */
     protected $networkId;
 
-    /** @var ObjectCache The main object cache instance. */
-    protected static $instance;
-
     /**
      * Constructor.
      *
@@ -688,34 +685,5 @@ final class ObjectCache
         }
 
         return $fullKeys;
-    }
-
-    /**
-     * Load the API functions needed for WordPress integration.
-     *
-     * @since 1.0.0
-     */
-    public static function loadApi()
-    {
-        require_once dirname(__DIR__) . '/includes/functions.php';
-    }
-
-    /**
-     * Get the main instance.
-     *
-     * This is a workaround because the static facade doesn't work here.
-     * See https://stackoverflow.com/questions/31039380/callstatic-does-not-call-if-there-exist-a-non-static-function
-     *
-     * @since 1.0.0
-     *
-     * @return static The main object cache instance.
-     */
-    public static function getInstance()
-    {
-        if (null === static::$instance) {
-            static::$instance = new static();
-        }
-
-        return static::$instance;
     }
 }

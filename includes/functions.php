@@ -7,6 +7,7 @@
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
+use LeavesAndLove\WpPsrCache\ObjectCacheService;
 use LeavesAndLove\WpPsrCache\ObjectCache;
 
 defined( 'ABSPATH' ) || exit;
@@ -27,7 +28,7 @@ if ( function_exists( 'add_action' ) ) {
 function wp_cache_add_global_groups( $groups ) {
     $groups = (array) $groups;
 
-    ObjectCache::getInstance()->addGlobalGroups( $groups );
+    ObjectCacheService::addGlobalGroups( $groups );
 }
 
 /**
@@ -41,7 +42,7 @@ function wp_cache_add_global_groups( $groups ) {
 function wp_cache_add_network_groups( $groups ) {
     $groups = (array) $groups;
 
-    ObjectCache::getInstance()->addNetworkGroups( $groups );
+    ObjectCacheService::addNetworkGroups( $groups );
 }
 
 /**
@@ -55,7 +56,7 @@ function wp_cache_add_network_groups( $groups ) {
 function wp_cache_add_non_persistent_groups( $groups ) {
     $groups = (array) $groups;
 
-    ObjectCache::getInstance()->addNonPersistentGroups( $groups );
+    ObjectCacheService::addNonPersistentGroups( $groups );
 }
 
 /**
@@ -67,7 +68,7 @@ function wp_cache_add_non_persistent_groups( $groups ) {
  * @param int $site_id Site ID.
  */
 function wp_cache_switch_to_site( $site_id ) {
-    ObjectCache::getInstance()->switchSiteContext( (int) $site_id );
+    ObjectCacheService::switchSiteContext( (int) $site_id );
 }
 
 /**
@@ -79,7 +80,7 @@ function wp_cache_switch_to_site( $site_id ) {
  * @param int $network_id Network ID.
  */
 function wp_cache_switch_to_network( $network_id ) {
-    ObjectCache::getInstance()->switchNetworkContext( (int) $network_id );
+    ObjectCacheService::switchNetworkContext( (int) $network_id );
 }
 
 /**
@@ -89,7 +90,7 @@ function wp_cache_switch_to_network( $network_id ) {
  * @see ObjectCache::init()
  */
 function wp_cache_init() {
-    ObjectCache::getInstance()->init( (int) get_current_blog_id(), (int) get_current_network_id() );
+    ObjectCacheService::init( (int) get_current_blog_id(), (int) get_current_network_id() );
 }
 
 /**
@@ -109,7 +110,7 @@ function wp_cache_init() {
 function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
     $found = (bool) $found;
 
-    return ObjectCache::getInstance()->get( $key, $group, $force, $found );
+    return ObjectCacheService::get( $key, $group, $force, $found );
 }
 
 /**
@@ -125,7 +126,7 @@ function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_set( $key, $value, $group = '', $expiration = 0 ) {
-    return ObjectCache::getInstance()->set( $key, $value, $group, $expiration );
+    return ObjectCacheService::set( $key, $value, $group, $expiration );
 }
 
 /**
@@ -145,7 +146,7 @@ function wp_cache_add( $key, $value, $group = '', $expiration = 0 ) {
         return false;
     }
 
-    return ObjectCache::getInstance()->add( $key, $value, $group, $expiration );
+    return ObjectCacheService::add( $key, $value, $group, $expiration );
 }
 
 /**
@@ -161,7 +162,7 @@ function wp_cache_add( $key, $value, $group = '', $expiration = 0 ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_replace( $key, $value, $group = '', $expiration = 0 ) {
-    return ObjectCache::getInstance()->replace( $key, $value, $group, $expiration );
+    return ObjectCacheService::replace( $key, $value, $group, $expiration );
 }
 
 /**
@@ -176,7 +177,7 @@ function wp_cache_replace( $key, $value, $group = '', $expiration = 0 ) {
  * @return int|bool The item's new value on success, false on failure.
  */
 function wp_cache_incr( $key, $offset = 1, $group = '' ) {
-    return ObjectCache::getInstance()->increment( $key, $offset, $group );
+    return ObjectCacheService::increment( $key, $offset, $group );
 }
 
 /**
@@ -191,7 +192,7 @@ function wp_cache_incr( $key, $offset = 1, $group = '' ) {
  * @return int|bool The item's new value on success, false on failure.
  */
 function wp_cache_decr( $key, $offset = 1, $group = '' ) {
-    return ObjectCache::getInstance()->decrement( $key, $offset, $group );
+    return ObjectCacheService::decrement( $key, $offset, $group );
 }
 
 /**
@@ -205,7 +206,7 @@ function wp_cache_decr( $key, $offset = 1, $group = '' ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_delete( $key, $group = '' ) {
-    return ObjectCache::getInstance()->delete( $key, $group );
+    return ObjectCacheService::delete( $key, $group );
 }
 
 /**
@@ -217,7 +218,7 @@ function wp_cache_delete( $key, $group = '' ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_flush() {
-    return ObjectCache::getInstance()->flush();
+    return ObjectCacheService::flush();
 }
 
 /**
@@ -242,7 +243,7 @@ function wp_cache_close() {
  * @return bool True if the value is present, false otherwise.
  */
 function wp_cache_has( $key, $group = '' ) {
-    return ObjectCache::getInstance()->has( $key, $group );
+    return ObjectCacheService::has( $key, $group );
 }
 
 /**
@@ -257,7 +258,7 @@ function wp_cache_has( $key, $group = '' ) {
  * @return array List of key => value pairs. For cache misses, false will be used as value.
  */
 function wp_cache_get_multi( $keys, $groups = '' ) {
-    return ObjectCache::getInstance()->getMultiple( $keys, $groups );
+    return ObjectCacheService::getMultiple( $keys, $groups );
 }
 
 /**
@@ -273,7 +274,7 @@ function wp_cache_get_multi( $keys, $groups = '' ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_set_multi( $values, $groups = '', $expiration = 0 ) {
-    return ObjectCache::getInstance()->setMultiple( $values, $groups, $expiration );
+    return ObjectCacheService::setMultiple( $values, $groups, $expiration );
 }
 
 /**
@@ -288,7 +289,7 @@ function wp_cache_set_multi( $values, $groups = '', $expiration = 0 ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_delete_multi( $keys, $groups = '' ) {
-    return ObjectCache::getInstance()->deleteMultiple( $keys, $groups );
+    return ObjectCacheService::deleteMultiple( $keys, $groups );
 }
 
 /**
@@ -302,7 +303,7 @@ function wp_cache_delete_multi( $keys, $groups = '' ) {
  * @return string The full cache key to use with cache implementations.
  */
 function wp_cache_get_key( $key, $group = '' ) {
-    return ObjectCache::getInstance()->buildKey( $key, $group );
+    return ObjectCacheService::buildKey( $key, $group );
 }
 
 /**
