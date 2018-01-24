@@ -33,11 +33,11 @@ class PsrCacheAdapterFactory implements CacheAdapterFactory
      */
     public function create($cache): CacheAdapter
     {
-        if (is_a($cache, Psr6::class)) {
+        if ($cache instanceof Psr6) {
             return new Psr6CacheAdapter($cache);
         }
 
-        if (is_a($cache, Psr16::class)) {
+        if ($cache instanceof Psr16) {
             return new Psr16CacheAdapter($cache);
         }
 
