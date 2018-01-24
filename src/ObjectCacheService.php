@@ -10,6 +10,8 @@
 namespace LeavesAndLove\WpPsrCache;
 
 use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
+use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
+use LeavesAndLove\WpPsrCache\CacheKeyGen\WpPsrCacheKeyGen;
 use RuntimeException;
 use BadMethodCallException;
 
@@ -33,19 +35,25 @@ final class ObjectCacheService
      *
      * @since 1.0.0
      *
-     * @param CacheAdapter $persistentCache    Adapter for the persistent cache implementation.
-     * @param CacheAdapter $nonPersistentCache Adapter for the non-persistent cache implementation.
+     * @param CacheAdapter  $persistentCache    Adapter for the persistent cache implementation.
+     * @param CacheAdapter  $nonPersistentCache Adapter for the non-persistent cache implementation.
+     * @param WpCacheKeyGen $keygen             Optional. Key generator. By default a WpPsrCacheKeyGen will
+     *                                          be instantiated with the current site and network as context.
      * @return ObjectCache The object cache instance provided.
      *
      * @throws RuntimeException Thrown if an object cache instance has already been started.
      */
-    public static function startInstance(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache): ObjectCache
+    public static function startInstance(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen = null): ObjectCache
     {
         if (null !== self::$instance) {
             throw new RuntimeException('Object cache instance already started.');
         }
 
-        self::$instance = new ObjectCache($persistentCache, $nonPersistentCache);
+        if (null === $keygen) {
+            $keygen = new WpPsrCacheKeyGen(get_current_blog_id(), get_current_network_id());
+        }
+
+        self::$instance = new ObjectCache($persistentCache, $nonPersistentCache, $keygen);
 
         return self::$instance;
     }

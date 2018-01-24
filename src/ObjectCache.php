@@ -10,6 +10,7 @@
 namespace LeavesAndLove\WpPsrCache;
 
 use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
+use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
 
 /**
  * WordPress object cache class.
@@ -21,26 +22,17 @@ final class ObjectCache
 
     const DEFAULT_GROUP = 'default';
 
-    /** @var CacheAdapter The persistent cache instance. */
+    /** @var CacheAdapter The persistent cache. */
     protected $persistentCache;
 
-    /** @var CacheAdapter The non-persistent cache instance. */
+    /** @var CacheAdapter The non-persistent cache. */
     protected $nonPersistentCache;
 
-    /** @var array List of global cache groups. */
-    protected $globalGroups = array();
-
-    /** @var array List of network cache groups. */
-    protected $networkGroups = array();
+    /** @var WpCacheKeyGen The key generator. */
+    protected $keygen;
 
     /** @var array List of non-persistent cache groups. */
     protected $nonPersistentGroups = array();
-
-    /** @var int Current site ID. */
-    protected $siteId;
-
-    /** @var int Current network ID. */
-    protected $networkId;
 
     /**
      * Constructor.
@@ -49,39 +41,15 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @param CacheAdapter $persistentCache    Adapter for the persistent cache implementation.
-     * @param CacheAdapter $nonPersistentCache Adapter for the non-persistent cache implementation.
+     * @param CacheAdapter  $persistentCache    Adapter for the persistent cache implementation.
+     * @param CacheAdapter  $nonPersistentCache Adapter for the non-persistent cache implementation.
+     * @param WpCacheKeyGen $keygen             Key generator.
      */
-    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache)
+    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen)
     {
         $this->persistentCache    = $persistentCache;
         $this->nonPersistentCache = $nonPersistentCache;
-    }
-
-    /**
-     * Add cache groups to consider global groups.
-     *
-     * @since 1.0.0
-     *
-     * @param array $groups The list of groups that are global.
-     */
-    public function addGlobalGroups(array $groups)
-    {
-        $groups             = array_fill_keys($groups, true);
-        $this->globalGroups = array_merge($this->globalGroups, $groups);
-    }
-
-    /**
-     * Add cache groups to consider network groups.
-     *
-     * @since 1.0.0
-     *
-     * @param array $groups The list of groups that are network-specific.
-     */
-    public function addNetworkGroups(array $groups)
-    {
-        $groups              = array_fill_keys($groups, true);
-        $this->networkGroups = array_merge($this->networkGroups, $groups);
+        $this->keygen             = $keygen;
     }
 
     /**
@@ -95,41 +63,6 @@ final class ObjectCache
     {
         $groups                    = array_fill_keys($groups, true);
         $this->nonPersistentGroups = array_merge($this->nonPersistentGroups, $groups);
-    }
-
-    /**
-     * Switch the site context.
-     *
-     * @since 1.0.0
-     *
-     * @param int $siteId Site ID to switch the context to.
-     */
-    public function switchSiteContext(int $siteId)
-    {
-        $this->siteId = $siteId;
-    }
-
-    /**
-     * Switch the network context.
-     *
-     * @since 1.0.0
-     *
-     * @param int $networkId Network ID to switch the context to.
-     */
-    public function switchNetworkContext(int $networkId)
-    {
-        $this->networkId = $networkId;
-    }
-
-    /**
-     * Initialize the object cache.
-     *
-     * @since 1.0.0
-     */
-    public function init(int $siteId, int $networkId)
-    {
-        $this->switchSiteContext($siteId);
-        $this->switchNetworkContext($networkId);
     }
 
     /**
@@ -148,7 +81,7 @@ final class ObjectCache
     public function get(string $key, string $group = self::DEFAULT_GROUP, bool $force = false, bool &$found = false)
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->getKeygen()->generate($key, $group);
 
         $found = false;
 
@@ -190,7 +123,7 @@ final class ObjectCache
     public function set(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->getKeygen()->generate($key, $group);
 
         if ($this->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->set($key, $value, $expiration);
@@ -219,7 +152,7 @@ final class ObjectCache
     public function add(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->getKeygen()->generate($key, $group);
 
         if ($this->isNonPersistentGroup($group)) {
             if ($this->nonPersistentCache->has($key)) {
@@ -256,7 +189,7 @@ final class ObjectCache
     public function replace(string $key, $value, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->getKeygen()->generate($key, $group);
 
         if ($this->isNonPersistentGroup($group)) {
             if (!$this->nonPersistentCache->has($key)) {
@@ -351,7 +284,7 @@ final class ObjectCache
     public function delete(string $key, string $group = self::DEFAULT_GROUP): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->getKeygen()->generate($key, $group);
 
         if ($this->isNonPersistentGroup($group)) {
             // If the item is not in the cache, return true.
@@ -406,7 +339,7 @@ final class ObjectCache
     public function has(string $key, string $group = self::DEFAULT_GROUP): bool
     {
         $group = $this->parseDefaultGroup($group);
-        $key   = $this->buildKey($key, $group);
+        $key   = $this->getKeygen()->generate($key, $group);
 
         if ($this->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->has($key);
@@ -561,54 +494,15 @@ final class ObjectCache
     }
 
     /**
-     * Build the full cache key for a given key and group.
+     * Get the key generator used by the object cache.
      *
      * @since 1.0.0
      *
-     * @param string $key   A cache key.
-     * @param string $group A cache group.
-     * @return string The full cache key to use with cache implementations.
+     * @return WpCacheKeyGen Key generator instance.
      */
-    public function buildKey(string $key, string $group): string
+    public function getKeygen(): WpCacheKeyGen
     {
-        switch (true) {
-            case isset($this->globalGroups[$group]):
-                $key = 'global.' . $group . '.' . $key;
-                break;
-            case isset($this->networkGroups[$group]):
-                $key = 'network.' . $this->networkId . '.' . $group . '.' . $key;
-                break;
-            default:
-                $key = 'site.' . $this->siteId . '.' . $group . '.' . $key;
-        }
-
-        return $this->sanitizeKey($key);
-    }
-
-    /**
-     * Sanitize a cache key by replacing unsupported characters.
-     *
-     * @since 1.0.0
-     *
-     * @param string $key A cache key.
-     * @return string The sanitized cache key.
-     */
-    protected function sanitizeKey(string $key): string
-    {
-        // The following characters are not supported in PSR-6/PSR-16.
-        $replacements = array(
-            '{'  => '',
-            '}'  => '',
-            '('  => '',
-            ')'  => '',
-            '/'  => '',
-            '\\' => '',
-            '@'  => '',
-            ':'  => '.',
-            ' '  => '', // This is not explicitly forbidden, but causes issues easily.
-        );
-
-        return str_replace(array_keys($replacements), array_values($replacements), $key);
+        return $this->keygen;
     }
 
     /**
@@ -681,7 +575,7 @@ final class ObjectCache
         $fullKeys = array();
 
         foreach ($keys as $key) {
-            $fullKeys[] = $this->buildKey($key, $groups[$key]);
+            $fullKeys[] = $this->getKeygen()->generate($key, $groups[$key]);
         }
 
         return $fullKeys;

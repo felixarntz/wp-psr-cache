@@ -9,6 +9,7 @@
 
 use LeavesAndLove\WpPsrCache\ObjectCacheService;
 use LeavesAndLove\WpPsrCache\ObjectCache;
+use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -21,28 +22,28 @@ if ( function_exists( 'add_action' ) ) {
  * Adds a group or list of groups to the global cache groups.
  *
  * @since 1.0.0
- * @see ObjectCache::addGlobalGroups()
+ * @see WpCacheKeyGen::addGlobalGroups()
  *
  * @param string|array $groups A group or an array of groups to add.
  */
 function wp_cache_add_global_groups( $groups ) {
     $groups = (array) $groups;
 
-    ObjectCacheService::addGlobalGroups( $groups );
+    ObjectCacheService::getKeygen()->addGlobalGroups( $groups );
 }
 
 /**
  * Adds a group or list of groups to the network cache groups.
  *
  * @since 1.0.0
- * @see ObjectCache::addNetworkGroups()
+ * @see WpCacheKeyGen::addNetworkGroups()
  *
  * @param string|array $groups A group or an array of groups to add.
  */
 function wp_cache_add_network_groups( $groups ) {
     $groups = (array) $groups;
 
-    ObjectCacheService::addNetworkGroups( $groups );
+    ObjectCacheService::getKeygen()->addNetworkGroups( $groups );
 }
 
 /**
@@ -63,34 +64,24 @@ function wp_cache_add_non_persistent_groups( $groups ) {
  * Switches the internal site ID.
  *
  * @since 1.0.0
- * @see ObjectCache::switchSiteContext()
+ * @see WpCacheKeyGen::switchSiteContext()
  *
  * @param int $site_id Site ID.
  */
 function wp_cache_switch_to_site( $site_id ) {
-    ObjectCacheService::switchSiteContext( (int) $site_id );
+    ObjectCacheService::getKeygen()->switchSiteContext( (int) $site_id );
 }
 
 /**
  * Switches the internal network ID.
  *
  * @since 1.0.0
- * @see ObjectCache::switchNetworkContext()
+ * @see WpCacheKeyGen::switchNetworkContext()
  *
  * @param int $network_id Network ID.
  */
 function wp_cache_switch_to_network( $network_id ) {
-    ObjectCacheService::switchNetworkContext( (int) $network_id );
-}
-
-/**
- * Initializes the object cache.
- *
- * @since 1.0.0
- * @see ObjectCache::init()
- */
-function wp_cache_init() {
-    ObjectCacheService::init( (int) get_current_blog_id(), (int) get_current_network_id() );
+    ObjectCacheService::getKeygen()->switchNetworkContext( (int) $network_id );
 }
 
 /**
@@ -222,6 +213,15 @@ function wp_cache_flush() {
 }
 
 /**
+ * Initializes the object cache.
+ *
+ * @since 1.0.0
+ */
+function wp_cache_init() {
+    // Empty function.
+}
+
+/**
  * Closes the cache.
  *
  * @since 1.0.0
@@ -296,14 +296,14 @@ function wp_cache_delete_multi( $keys, $groups = '' ) {
  * Builds the full internal cache key for a given key and group.
  *
  * @since 1.0.0
- * @see ObjectCache::buildKey()
+ * @see WpCacheKeyGen::generate()
  *
  * @param string $key   A cache key.
  * @param string $group A cache group.
  * @return string The full cache key to use with cache implementations.
  */
 function wp_cache_get_key( $key, $group = '' ) {
-    return ObjectCacheService::buildKey( $key, $group );
+    return ObjectCacheService::getKeygen()->generate( $key, $group );
 }
 
 /**
