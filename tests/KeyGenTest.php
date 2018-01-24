@@ -35,9 +35,9 @@ class KeyGenTest extends TestCase
     }
 
     /**
-     * @dataProvider dataGenerateCommon
+     * @dataProvider dataGenerate
      */
-    public function testGenerateCommon(string $key, string $group, int $siteId, int $networkId, string $expected)
+    public function testGenerate(string $key, string $group, int $siteId, int $networkId, string $expected)
     {
         $this->keygen->switchSiteContext($siteId);
         $this->keygen->switchNetworkContext($networkId);
@@ -45,7 +45,7 @@ class KeyGenTest extends TestCase
         $this->assertSame($expected, $this->keygen->generate($key, $group));
     }
 
-    public function dataGenerateCommon()
+    public function dataGenerate()
     {
         return array(
             array('key1', 'site_options', 1, 1, 'site.1.site_options.key1'),
@@ -60,6 +60,33 @@ class KeyGenTest extends TestCase
             array('key10', 'global_options', 2, 1, 'global.global_options.key10'),
             array('key11', 'global_options', 1, 2, 'global.global_options.key11'),
             array('key12', 'global_options', 2, 2, 'global.global_options.key12'),
+        );
+    }
+
+    /**
+     * @dataProvider dataSanitize
+     */
+    public function testSanitize(string $key, string $expected)
+    {
+        $key = $this->keygen->generate($key, 'global_options');
+        $key = substr($key, strlen('global.global_options.'));
+
+        $this->assertSame($expected, $key);
+    }
+
+    public function dataSanitize()
+    {
+        return array(
+            array('hello', 'hello'),
+            array('alphanumerickey1', 'alphanumerickey1'),
+            array('alpha_numeric_key2', 'alpha_numeric_key2'),
+            array('1numberatbeginning', '1numberatbeginning'),
+            array('1', '1'),
+            array('key.with.dot', 'key.with.dot'),
+            array('key:with:colon', 'key.with.colon'),
+            array('key with space', 'keywithspace'),
+            array('key@with{special}characters', 'keywithspecialcharacters'),
+            array('(more\special/characters)', 'morespecialcharacters'),
         );
     }
 }
