@@ -29,6 +29,11 @@
       "LeavesAndLove\\WpPsrCache\\": "src"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "LeavesAndLove\\WpPsrCache\\Tests\\": "tests"
+    }
+  },
   "require": {
     "php": "^7.0",
     "composer/installers": "~1.0",
