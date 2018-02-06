@@ -10,7 +10,6 @@
 namespace LeavesAndLove\WpPsrCache;
 
 use RuntimeException;
-use BadMethodCallException;
 
 /**
  * WordPress object cache service class.
