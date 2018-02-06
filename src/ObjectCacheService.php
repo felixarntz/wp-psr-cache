@@ -9,11 +9,6 @@
 
 namespace LeavesAndLove\WpPsrCache;
 
-use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
-use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
-use LeavesAndLove\WpPsrCache\CacheKeyGen\WpPsrCacheKeyGen;
-use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
-use LeavesAndLove\WpPsrCache\CacheRouter\WpPsrCacheRouter;
 use RuntimeException;
 use BadMethodCallException;
 
