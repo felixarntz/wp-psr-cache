@@ -8,6 +8,7 @@
  */
 
 use LeavesAndLove\WpPsrCache\ObjectCache;
+use LeavesAndLove\WpPsrCache\ObjectCacheService;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
 use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
 
@@ -225,7 +226,8 @@ function wp_cache_flush() {
  * @since 1.0.0
  */
 function wp_cache_init() {
-    // Empty function.
+    // This ensures an exception is thrown if no object cache has been set before this point.
+    ObjectCacheService::getInstance();
 }
 
 /**

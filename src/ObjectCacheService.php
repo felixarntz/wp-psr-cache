@@ -54,12 +54,12 @@ final class ObjectCacheService
      *
      * @return ObjectCache The object cache instance provided.
      *
-     * @throws RuntimeException Thrown if no object cache instance has been set yet.
+     * @throws RuntimeException Thrown if no object cache instance has been set.
      */
     public static function getInstance(): ObjectCache
     {
         if (!isset($GLOBALS['wp_object_cache'])) {
-            throw new RuntimeException('Object cache instance not set yet.');
+            throw new RuntimeException('Object cache instance not set.');
         }
 
         return $GLOBALS['wp_object_cache'];
