@@ -106,7 +106,9 @@ function wp_cache_switch_to_network( $network_id ) {
  * @return mixed The value of the item from the cache, or false in case of cache miss.
  */
 function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
-    return wp_object_cache()->get( $key, $group, $force, (bool) $found );
+    $found = (bool) $found;
+
+    return wp_object_cache()->get( $key, $group, $force, $found );
 }
 
 /**
