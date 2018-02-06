@@ -19,6 +19,19 @@ if ( function_exists( 'add_action' ) ) {
 }
 
 /**
+ * Gets the main object cache instance.
+ *
+ * @since 1.0.0
+ *
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @return ObjectCache Main object cache instance.
+ */
+function wp_object_cache() {
+    return $GLOBALS['wp_object_cache'];
+}
+
+/**
  * Adds a group or list of groups to the global cache groups.
  *
  * @since 1.0.0
@@ -27,7 +40,7 @@ if ( function_exists( 'add_action' ) ) {
  * @param string|array $groups A group or an array of groups to add.
  */
 function wp_cache_add_global_groups( $groups ) {
-	$GLOBALS['wp_object_cache']->getKeygen()->addGlobalGroups( (array) $groups );
+	wp_object_cache()->getKeygen()->addGlobalGroups( (array) $groups );
 }
 
 /**
@@ -39,7 +52,7 @@ function wp_cache_add_global_groups( $groups ) {
  * @param string|array $groups A group or an array of groups to add.
  */
 function wp_cache_add_network_groups( $groups ) {
-	$GLOBALS['wp_object_cache']->getKeygen()->addNetworkGroups( (array) $groups );
+	wp_object_cache()->getKeygen()->addNetworkGroups( (array) $groups );
 }
 
 /**
@@ -51,7 +64,7 @@ function wp_cache_add_network_groups( $groups ) {
  * @param string|array $groups A group or an array of groups to add.
  */
 function wp_cache_add_non_persistent_groups( $groups ) {
-	$GLOBALS['wp_object_cache']->getRouter()->addNonPersistentGroups( (array) $groups );
+	wp_object_cache()->getRouter()->addNonPersistentGroups( (array) $groups );
 }
 
 /**
@@ -63,7 +76,7 @@ function wp_cache_add_non_persistent_groups( $groups ) {
  * @param int $site_id Site ID.
  */
 function wp_cache_switch_to_site( $site_id ) {
-    $GLOBALS['wp_object_cache']->getKeygen()->switchSiteContext( (int) $site_id );
+    wp_object_cache()->getKeygen()->switchSiteContext( (int) $site_id );
 }
 
 /**
@@ -75,7 +88,7 @@ function wp_cache_switch_to_site( $site_id ) {
  * @param int $network_id Network ID.
  */
 function wp_cache_switch_to_network( $network_id ) {
-    $GLOBALS['wp_object_cache']->getKeygen()->switchNetworkContext( (int) $network_id );
+    wp_object_cache()->getKeygen()->switchNetworkContext( (int) $network_id );
 }
 
 /**
@@ -93,7 +106,7 @@ function wp_cache_switch_to_network( $network_id ) {
  * @return mixed The value of the item from the cache, or false in case of cache miss.
  */
 function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
-    return $GLOBALS['wp_object_cache']->get( $key, $group, $force, (bool) $found );
+    return wp_object_cache()->get( $key, $group, $force, (bool) $found );
 }
 
 /**
@@ -109,7 +122,7 @@ function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_set( $key, $value, $group = '', $expiration = 0 ) {
-    return $GLOBALS['wp_object_cache']->set( $key, $value, $group, $expiration );
+    return wp_object_cache()->set( $key, $value, $group, $expiration );
 }
 
 /**
@@ -129,7 +142,7 @@ function wp_cache_add( $key, $value, $group = '', $expiration = 0 ) {
         return false;
     }
 
-    return $GLOBALS['wp_object_cache']->add( $key, $value, $group, $expiration );
+    return wp_object_cache()->add( $key, $value, $group, $expiration );
 }
 
 /**
@@ -145,7 +158,7 @@ function wp_cache_add( $key, $value, $group = '', $expiration = 0 ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_replace( $key, $value, $group = '', $expiration = 0 ) {
-    return $GLOBALS['wp_object_cache']->replace( $key, $value, $group, $expiration );
+    return wp_object_cache()->replace( $key, $value, $group, $expiration );
 }
 
 /**
@@ -160,7 +173,7 @@ function wp_cache_replace( $key, $value, $group = '', $expiration = 0 ) {
  * @return int|bool The item's new value on success, false on failure.
  */
 function wp_cache_incr( $key, $offset = 1, $group = '' ) {
-    return $GLOBALS['wp_object_cache']->increment( $key, $offset, $group );
+    return wp_object_cache()->increment( $key, $offset, $group );
 }
 
 /**
@@ -175,7 +188,7 @@ function wp_cache_incr( $key, $offset = 1, $group = '' ) {
  * @return int|bool The item's new value on success, false on failure.
  */
 function wp_cache_decr( $key, $offset = 1, $group = '' ) {
-    return $GLOBALS['wp_object_cache']->decrement( $key, $offset, $group );
+    return wp_object_cache()->decrement( $key, $offset, $group );
 }
 
 /**
@@ -189,7 +202,7 @@ function wp_cache_decr( $key, $offset = 1, $group = '' ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_delete( $key, $group = '' ) {
-    return $GLOBALS['wp_object_cache']->delete( $key, $group );
+    return wp_object_cache()->delete( $key, $group );
 }
 
 /**
@@ -201,7 +214,7 @@ function wp_cache_delete( $key, $group = '' ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_flush() {
-    return $GLOBALS['wp_object_cache']->flush();
+    return wp_object_cache()->flush();
 }
 
 /**
@@ -235,7 +248,7 @@ function wp_cache_close() {
  * @return bool True if the value is present, false otherwise.
  */
 function wp_cache_has( $key, $group = '' ) {
-    return $GLOBALS['wp_object_cache']->has( $key, $group );
+    return wp_object_cache()->has( $key, $group );
 }
 
 /**
@@ -250,7 +263,7 @@ function wp_cache_has( $key, $group = '' ) {
  * @return array List of key => value pairs. For cache misses, false will be used as value.
  */
 function wp_cache_get_multi( $keys, $groups = '' ) {
-    return $GLOBALS['wp_object_cache']->getMultiple( $keys, $groups );
+    return wp_object_cache()->getMultiple( $keys, $groups );
 }
 
 /**
@@ -266,7 +279,7 @@ function wp_cache_get_multi( $keys, $groups = '' ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_set_multi( $values, $groups = '', $expiration = 0 ) {
-    return $GLOBALS['wp_object_cache']->setMultiple( $values, $groups, $expiration );
+    return wp_object_cache()->setMultiple( $values, $groups, $expiration );
 }
 
 /**
@@ -281,7 +294,7 @@ function wp_cache_set_multi( $values, $groups = '', $expiration = 0 ) {
  * @return bool True on success, false on failure.
  */
 function wp_cache_delete_multi( $keys, $groups = '' ) {
-    return $GLOBALS['wp_object_cache']->deleteMultiple( $keys, $groups );
+    return wp_object_cache()->deleteMultiple( $keys, $groups );
 }
 
 /**
@@ -295,7 +308,7 @@ function wp_cache_delete_multi( $keys, $groups = '' ) {
  * @return string The full cache key to use with cache implementations.
  */
 function wp_cache_get_key( $key, $group = '' ) {
-    return $GLOBALS['wp_object_cache']->getKeygen()->generate( $key, $group );
+    return wp_object_cache()->getKeygen()->generate( $key, $group );
 }
 
 /**

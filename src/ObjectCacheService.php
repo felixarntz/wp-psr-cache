@@ -23,6 +23,9 @@ use BadMethodCallException;
  * This class provides a simple access point where you can set and get the main
  * object cache instance so that we don't need to use Singletons.
  *
+ * The main instance is stored in a global, to be compatible with how the object
+ * cache is commonly handled in WordPress.
+ *
  * @since 1.0.0
  */
 final class ObjectCacheService
