@@ -8,8 +8,6 @@
  */
 
 use LeavesAndLove\WpPsrCache\ObjectCache;
-use LeavesAndLove\WpPsrCache\ObjectCacheService;
-use LeavesAndLove\WpPsrCache\ObjectCacheFactory;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
 use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
 
@@ -210,15 +208,9 @@ function wp_cache_flush() {
  * Initializes the object cache.
  *
  * @since 1.0.0
- * @see ObjectCache::init()
  */
 function wp_cache_init() {
-    $instance = ( new ObjectCacheFactory )->create();
-    $instance->init(
-        (int) get_current_blog_id(),
-        (int) get_current_network_id()
-    );
-    $GLOBALS['wp_object_cache'] = $instance;
+    // Empty function.
 }
 
 /**

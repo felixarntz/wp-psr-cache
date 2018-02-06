@@ -43,6 +43,7 @@ The following example uses the `symfony/cache` library, so you have to require i
  */
 
 use LeavesAndLove\WpPsrCache\ObjectCacheService;
+use LeavesAndLove\WpPsrCache\ObjectCacheFactory;
 use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 use Symfony\Component\Cache\Simple\MemcachedCache;
 use Symfony\Component\Cache\Simple\ArrayCache;
@@ -57,15 +58,18 @@ ObjectCacheService::loadApi();
  * @since 1.0.0
  */
 function wp_psr_start_cache() {
-    $factory = new PsrCacheAdapterFactory();
+	$cacheFactory   = new ObjectCacheFactory();
+	$adapterFactory = new PsrCacheAdapterFactory();
 
-    $memcached = new Memcached();
+	$memcached = new Memcached();
 	$memcached->addServer( '127.0.0.1', 11211, 20 );
 
-    $persistentCache    = $factory->create( new MemcachedCache( $memcached ) );
-    $nonPersistentCache = $factory->create( new ArrayCache() );
+	$persistentCacheAdapter    = $factory->create( new MemcachedCache( $memcached ) );
+	$nonPersistentCacheAdapter = $factory->create( new ArrayCache() );
 
-    ObjectCacheService::startInstance( $persistentCache, $nonPersistentCache );
+	$cache = $cacheFactory->create( $persistentCacheAdapter, $nonPersistentCacheAdapter );
+
+	ObjectCacheService::setInstance( $cache );
 }
 
 wp_psr_start_cache();
