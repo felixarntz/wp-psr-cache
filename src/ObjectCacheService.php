@@ -67,34 +67,6 @@ final class ObjectCacheService
     }
 
     /**
-     * Proxy to call methods of the object cache instance provided statically for easy access.
-     *
-     * @since 1.0.0
-     *
-     * @param string $method    Method to call.
-     * @param array  $arguments Arguments to pass to the method.
-     * @return mixed Results of the method called.
-     *
-     * @throws BadMethodCallException Thrown when the method does not exist on the object cache instance.
-     */
-    public static function __callStatic(string $method, array $arguments)
-    {
-        $instance = self::getInstance();
-
-        if (!method_exists($instance, $method)) {
-            throw new BadMethodCallException(
-                sprintf(
-                    'The method "%1$s" does not exist on the "%2$s" instance.',
-                    $method,
-                    get_class($instance)
-                )
-            );
-        }
-
-        return $instance->$method(...$arguments);
-    }
-
-    /**
      * Load the API functions needed for WordPress integration.
      *
      * @since 1.0.0
