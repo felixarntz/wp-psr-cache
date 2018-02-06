@@ -8,6 +8,7 @@
  */
 
 use LeavesAndLove\WpPsrCache\ObjectCacheService;
+use LeavesAndLove\WpPsrCache\ObjectCacheFactory;
 use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 
 defined( 'ABSPATH' ) || exit;
@@ -20,12 +21,15 @@ ObjectCacheService::loadApi();
  * @since 1.0.0
  */
 function wp_psr_start_cache() {
-    $factory = new PsrCacheAdapterFactory();
+    $cacheFactory   = new ObjectCacheFactory();
+    $adapterFactory = new PsrCacheAdapterFactory();
 
-    $persistentCache    = $factory->create( /* Pass the persistent cache instance here. */ );
-    $nonPersistentCache = $factory->create( /* Pass the non-persistent cache instance here. */ );
+    $persistentCacheAdapter    = $adapterFactory->create( /* Pass the persistent cache instance here. */ );
+    $nonPersistentCacheAdapter = $adapterFactory->create( /* Pass the non-persistent cache instance here. */ );
 
-    ObjectCacheService::startInstance( $persistentCache, $nonPersistentCache );
+    $cache = $cacheFactory->create( $persistentCacheAdapter, $nonPersistentCacheAdapter );
+
+    ObjectCacheService::setInstance( $cache );
 }
 
 wp_psr_start_cache();
