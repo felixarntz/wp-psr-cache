@@ -21,6 +21,12 @@ use InvalidArgumentException;
 class PsrCacheAdapterFactory implements CacheAdapterFactory
 {
 
+    /** @var array Map interfaces to adapters. */
+    const MAPPINGS = array(
+        Psr6::class  => Psr6CacheAdapter::class,
+        Psr16::class => Psr16CacheAdapter::class,
+    );
+
     /**
      * Create a cache adapter for a given cache implementation.
      *
@@ -33,12 +39,10 @@ class PsrCacheAdapterFactory implements CacheAdapterFactory
      */
     public function create($cache): CacheAdapter
     {
-        if ($cache instanceof Psr6) {
-            return new Psr6CacheAdapter($cache);
-        }
-
-        if ($cache instanceof Psr16) {
-            return new Psr16CacheAdapter($cache);
+        foreach (self::MAPPINGS as $interface => $adapter) {
+            if ($cache instanceof $interface) {
+                return new $adapter($cache);
+            }
         }
 
         throw new InvalidArgumentException(
