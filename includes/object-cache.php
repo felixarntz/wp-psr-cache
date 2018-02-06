@@ -24,8 +24,8 @@ function wp_psr_start_cache() {
     $cacheFactory   = new ObjectCacheFactory();
     $adapterFactory = new PsrCacheAdapterFactory();
 
-    $persistentCacheAdapter    = $factory->create( /* Pass the persistent cache instance here. */ );
-    $nonPersistentCacheAdapter = $factory->create( /* Pass the non-persistent cache instance here. */ );
+    $persistentCacheAdapter    = $adapterFactory->create( /* Pass the persistent cache instance here. */ );
+    $nonPersistentCacheAdapter = $adapterFactory->create( /* Pass the non-persistent cache instance here. */ );
 
     $cache = $cacheFactory->create( $persistentCacheAdapter, $nonPersistentCacheAdapter );
 
