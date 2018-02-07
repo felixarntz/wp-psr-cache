@@ -13,7 +13,7 @@ use LeavesAndLove\WpPsrCache\ObjectCacheFactory;
 use LeavesAndLove\WpPsrCache\CacheSelector\BaseCacheSelectorFactory;
 use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
-use LeavesAndLove\WpPsrCache\CacheSelector\WpCacheSelector;
+use LeavesAndLove\WpPsrCache\CacheSelector\CacheSelector;
 use Psr\Cache\CacheItemPoolInterface as Psr6;
 use Psr\SimpleCache\CacheInterface as Psr16;
 
@@ -77,7 +77,7 @@ function wp_cache_add_network_groups( $groups ) {
  * Adds a group or list of groups to the non-persistent cache groups.
  *
  * @since 1.0.0
- * @see WpCacheSelector::addNonPersistentGroups()
+ * @see CacheSelector::addNonPersistentGroups()
  *
  * @param string|array $groups A group or an array of groups to add.
  */
