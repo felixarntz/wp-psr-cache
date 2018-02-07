@@ -26,7 +26,7 @@ After the installation, you need to move the `includes/object-cache.php` file in
 	}
 ```
 
-Then, replace the inline comments in the `object-cache.php` file with the actual instantiations of the classes you want to use. You need to provide two implementations, one for the persistent cache and another for the non-persistent cache.
+Then, replace the inline comment in the `object-cache.php` file with the actual instantiations of the classes you want to use. You need to provide two implementations, one for the persistent cache and another for the non-persistent cache.
 
 ### Example
 
@@ -43,8 +43,6 @@ The following example uses the `symfony/cache` library, so you have to require i
  */
 
 use LeavesAndLove\WpPsrCache\ObjectCacheService;
-use LeavesAndLove\WpPsrCache\ObjectCacheFactory;
-use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 use Symfony\Component\Cache\Simple\MemcachedCache;
 use Symfony\Component\Cache\Simple\ArrayCache;
 
@@ -58,18 +56,10 @@ ObjectCacheService::loadApi();
  * @since 1.0.0
  */
 function wp_psr_start_cache() {
-	$cacheFactory   = new ObjectCacheFactory();
-	$adapterFactory = new PsrCacheAdapterFactory();
-
 	$memcached = new Memcached();
 	$memcached->addServer( '127.0.0.1', 11211, 20 );
 
-	$persistentCacheAdapter    = $adapterFactory->create( new MemcachedCache( $memcached ) );
-	$nonPersistentCacheAdapter = $adapterFactory->create( new ArrayCache() );
-
-	$cache = $cacheFactory->create( $persistentCacheAdapter, $nonPersistentCacheAdapter );
-
-	ObjectCacheService::setInstance( $cache );
+	wp_cache_start( new MemcachedCache( $memcached ), new ArrayCache() );
 }
 
 wp_psr_start_cache();

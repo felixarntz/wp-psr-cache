@@ -9,8 +9,12 @@
 
 use LeavesAndLove\WpPsrCache\ObjectCache;
 use LeavesAndLove\WpPsrCache\ObjectCacheService;
+use LeavesAndLove\WpPsrCache\ObjectCacheFactory;
+use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
 use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
+use Psr\Cache\CacheItemPoolInterface as Psr6;
+use Psr\SimpleCache\CacheInterface as Psr16;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -20,16 +24,26 @@ if ( function_exists( 'add_action' ) ) {
 }
 
 /**
- * Gets the main object cache instance.
+ * Starts the object cache by creating the main object cache instance for
+ * given persistent and non-persistent caches.
+ *
+ * This function must only be called once, from the `object-cache.php` drop-in.
  *
  * @since 1.0.0
  *
- * @global WP_Object_Cache $wp_object_cache Object cache global instance.
- *
- * @return ObjectCache Main object cache instance.
+ * @param Psr6|Psr16 $persistent_cache     Cache implementation to use for persistent cache.
+ * @param Psr6|Psr16 $non_persistent_cache Cache implementation to use for non-persistent cache.
  */
-function wp_object_cache() {
-    return $GLOBALS['wp_object_cache'];
+function wp_cache_start( $persistent_cache, $non_persistent_cache ) {
+    $cache_factory   = new ObjectCacheFactory();
+    $adapter_factory = new PsrCacheAdapterFactory();
+
+    $persistent_cache_adapter     = $adapter_factory->create( $persistent_cache );
+    $non_persistent_cache_adapter = $adapter_factory->create( $non_persistent_cache );
+
+    $cache = $cache_factory->create( $persistent_cache_adapter, $non_persistent_cache_adapter );
+
+    ObjectCacheService::setInstance( $cache );
 }
 
 /**
@@ -313,6 +327,19 @@ function wp_cache_delete_multi( $keys, $groups = '' ) {
  */
 function wp_cache_get_key( $key, $group = '' ) {
     return wp_object_cache()->getKeygen()->generate( $key, $group );
+}
+
+/**
+ * Gets the main object cache instance.
+ *
+ * @since 1.0.0
+ *
+ * @global WP_Object_Cache $wp_object_cache Object cache global instance.
+ *
+ * @return ObjectCache Main object cache instance.
+ */
+function wp_object_cache() {
+    return $GLOBALS['wp_object_cache'];
 }
 
 /**
