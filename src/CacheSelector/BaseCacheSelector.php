@@ -155,14 +155,7 @@ class BaseCacheSelector implements CacheSelector
      */
     public function clearPersistent(): bool
     {
-        $result = $this->persistentCache->clear();
-
-        $caches        = array_filter($this->persistentCaches);
-        $clearedCaches = array_filter(array_map(function ($cache) {
-            return $cache->clear();
-        }, $caches));
-
-        return $result && count($caches) === count($clearedCaches);
+        return $this->persistentCache->clear() && $this->clearCaches($this->persistentCaches);
     }
 
     /**
@@ -174,13 +167,24 @@ class BaseCacheSelector implements CacheSelector
      */
     public function clearNonPersistent(): bool
     {
-        $result = $this->nonPersistentCache->clear();
+        return $this->nonPersistentCache->clear() && $this->clearCaches($this->nonPersistentCaches);
+    }
 
-        $caches        = array_filter($this->nonPersistentCaches);
+    /**
+     * Delete all values from a set of caches.
+     *
+     * @since 1.0.0
+     *
+     * @param array $caches List of cache adapter instances.
+     * @return bool True on success, false on failure.
+     */
+    protected function clearCaches(array $caches): bool
+    {
+        $caches        = array_filter($caches);
         $clearedCaches = array_filter(array_map(function ($cache) {
             return $cache->clear();
         }, $caches));
 
-        return $result && count($caches) === count($clearedCaches);
+        return count($caches) === count($clearedCaches);
     }
 }
