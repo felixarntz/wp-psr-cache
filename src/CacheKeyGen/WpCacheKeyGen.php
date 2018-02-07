@@ -14,19 +14,8 @@ namespace LeavesAndLove\WpPsrCache\CacheKeyGen;
  *
  * @since 1.0.0
  */
-interface WpCacheKeyGen
+interface WpCacheKeyGen extends CacheKeyGen
 {
-
-    /**
-     * Generate the full cache key for a given key and group.
-     *
-     * @since 1.0.0
-     *
-     * @param string $key   A cache key.
-     * @param string $group A cache group.
-     * @return string The full cache key to use with cache implementations.
-     */
-    public function generate(string $key, string $group): string;
 
     /**
      * Add cache groups to consider global groups.
