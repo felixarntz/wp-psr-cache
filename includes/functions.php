@@ -10,6 +10,7 @@
 use LeavesAndLove\WpPsrCache\ObjectCache;
 use LeavesAndLove\WpPsrCache\ObjectCacheService;
 use LeavesAndLove\WpPsrCache\ObjectCacheFactory;
+use LeavesAndLove\WpPsrCache\CacheSelector\BaseCacheSelectorFactory;
 use LeavesAndLove\WpPsrCache\CacheAdapter\PsrCacheAdapterFactory;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
 use LeavesAndLove\WpPsrCache\CacheSelector\WpCacheSelector;
@@ -35,13 +36,15 @@ if ( function_exists( 'add_action' ) ) {
  * @param Psr6|Psr16 $non_persistent_cache Cache implementation to use for non-persistent cache.
  */
 function wp_cache_start( $persistent_cache, $non_persistent_cache ) {
-    $cache_factory   = new ObjectCacheFactory();
-    $adapter_factory = new PsrCacheAdapterFactory();
+    $cache_factory    = new ObjectCacheFactory();
+    $selector_factory = new BaseCacheSelectorFactory();
+    $adapter_factory  = new PsrCacheAdapterFactory();
 
     $persistent_cache_adapter     = $adapter_factory->create( $persistent_cache );
     $non_persistent_cache_adapter = $adapter_factory->create( $non_persistent_cache );
 
-    $cache = $cache_factory->create( $persistent_cache_adapter, $non_persistent_cache_adapter );
+    $selector = $selector_factory->create( $persistent_cache_adapter, $non_persistent_cache_adapter );
+    $cache    = $cache_factory->create( $selector );
 
     ObjectCacheService::setInstance( $cache );
 }
@@ -261,8 +264,8 @@ function wp_cache_close() {
  * @since 1.0.0
  * @see ObjectCache::has()
  *
- * @param string $key   The key of the item to delete.
- * @param string $group Optional. The group of the item to delete. Default empty string.
+ * @param string $key   The key of the item in the cache.
+ * @param string $group Optional. The group of the item in the cache. Default empty string.
  * @return bool True if the value is present, false otherwise.
  */
 function wp_cache_has( $key, $group = '' ) {
@@ -275,13 +278,14 @@ function wp_cache_has( $key, $group = '' ) {
  * @since 1.0.0
  * @see ObjectCache::getMultiple()
  *
- * @param array        $keys   The list of keys for the items in the cache.
- * @param string|array $groups A group or a list of groups. If a string, it is used for all keys.
- *                             If an array, it corresponds with the $keys array. Default empty string.
+ * @param array  $keys  The list of keys for the items in the cache.
+ * @param string $group Optional. The group of the items in the cache. Default empty string.
+ * @param bool   $force Optional. Whether to force an update of the non-persistent cache
+ *                      from the persistent cache. Default false.
  * @return array List of key => value pairs. For cache misses, false will be used as value.
  */
-function wp_cache_get_multi( $keys, $groups = '' ) {
-    return wp_object_cache()->getMultiple( $keys, $groups );
+function wp_cache_get_multi( $keys, $group = '', $force = false ) {
+    return wp_object_cache()->getMultiple( $keys, $group, $force );
 }
 
 /**
@@ -290,14 +294,13 @@ function wp_cache_get_multi( $keys, $groups = '' ) {
  * @since 1.0.0
  * @see ObjectCache::setMultiple()
  *
- * @param array        $keys       The list of key => value pairs to store.
- * @param string|array $groups     A group or a list of groups. If a string, it is used for all keys.
- *                                 If an array, it corresponds with the $keys array. Default empty string.
- * @param int          $expiration Optional. When to expire the value, passed in seconds. Default 0 (no expiration).
+ * @param array  $keys       The list of key => value pairs to store.
+ * @param string $group      Optional. The group of the items to store. Default empty string.
+ * @param int    $expiration Optional. When to expire the value, passed in seconds. Default 0 (no expiration).
  * @return bool True on success, false on failure.
  */
-function wp_cache_set_multi( $values, $groups = '', $expiration = 0 ) {
-    return wp_object_cache()->setMultiple( $values, $groups, $expiration );
+function wp_cache_set_multi( $values, $group = '', $expiration = 0 ) {
+    return wp_object_cache()->setMultiple( $values, $group, $expiration );
 }
 
 /**
@@ -306,13 +309,12 @@ function wp_cache_set_multi( $values, $groups = '', $expiration = 0 ) {
  * @since 1.0.0
  * @see ObjectCache::deleteMultiple()
  *
- * @param array        $keys   The list of keys for the items in the cache to delete.
- * @param string|array $groups A group or a list of groups. If a string, it is used for all keys.
- *                             If an array, it corresponds with the $keys array. Default empty string.
+ * @param array  $keys  The list of keys for the items in the cache to delete.
+ * @param string $group Optional. The group of the items to delete. Default empty string.
  * @return bool True on success, false on failure.
  */
-function wp_cache_delete_multi( $keys, $groups = '' ) {
-    return wp_object_cache()->deleteMultiple( $keys, $groups );
+function wp_cache_delete_multi( $keys, $group = '' ) {
+    return wp_object_cache()->deleteMultiple( $keys, $group );
 }
 
 /**

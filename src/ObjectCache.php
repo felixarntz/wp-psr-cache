@@ -10,8 +10,8 @@
 namespace LeavesAndLove\WpPsrCache;
 
 use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
-use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
-use LeavesAndLove\WpPsrCache\CacheSelector\WpCacheSelector;
+use LeavesAndLove\WpPsrCache\CacheKeyGen\CacheKeyGen;
+use LeavesAndLove\WpPsrCache\CacheSelector\CacheSelector;
 
 /**
  * WordPress object cache class.
@@ -23,17 +23,11 @@ final class ObjectCache
 
     const DEFAULT_GROUP = 'default';
 
-    /** @var CacheAdapter The persistent cache. */
-    private $persistentCache;
-
-    /** @var CacheAdapter The non-persistent cache. */
-    private $nonPersistentCache;
-
-    /** @var WpCacheKeyGen The key generator. */
-    private $keygen;
-
-    /** @var WpCacheSelector The selector to detect which cache to use. */
+    /** @var CacheSelector The selector to detect which cache to use. */
     private $selector;
+
+    /** @var CacheKeyGen The key generator. */
+    private $keygen;
 
     /**
      * Constructor.
@@ -42,17 +36,13 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @param CacheAdapter    $persistentCache    Adapter for the persistent cache implementation.
-     * @param CacheAdapter    $nonPersistentCache Adapter for the non-persistent cache implementation.
-     * @param WpCacheKeyGen   $keygen             Key generator.
-     * @param WpCacheSelector $selector           Selector to detect which cache to use.
+     * @param CacheSelector $selector Selector to detect which cache to use.
+     * @param CacheKeyGen   $keygen   Key generator.
      */
-    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen, WpCacheSelector $selector)
+    public function __construct(CacheSelector $selector, CacheKeyGen $keygen)
     {
-        $this->persistentCache    = $persistentCache;
-        $this->nonPersistentCache = $nonPersistentCache;
-        $this->keygen             = $keygen;
-        $this->selector           = $selector;
+        $this->selector = $selector;
+        $this->keygen   = $keygen;
     }
 
     /**
@@ -73,13 +63,15 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
+
         $found = false;
 
         $nonPersistent = $this->selector->isNonPersistentGroup($group);
         if ($nonPersistent || !$force) {
-            if ($this->nonPersistentCache->has($key)) {
+            if ($nonPersistentCache->has($key)) {
                 $found = true;
-                return $this->nonPersistentCache->get($key);
+                return $nonPersistentCache->get($key);
             }
 
             if ($nonPersistent) {
@@ -87,11 +79,13 @@ final class ObjectCache
             }
         }
 
-        if ($this->persistentCache->has($key)) {
-            $found = true;
-            $value = $this->persistentCache->get($key);
+        $persistentCache = $this->selector->selectPersistentCache($group);
 
-            $this->nonPersistentCache->set($key, $value);
+        if ($persistentCache->has($key)) {
+            $found = true;
+            $value = $persistentCache->get($key);
+
+            $nonPersistentCache->set($key, $value);
 
             return $value;
         }
@@ -115,12 +109,16 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
+
         if ($this->selector->isNonPersistentGroup($group)) {
-            return $this->nonPersistentCache->set($key, $value, $expiration);
+            return $nonPersistentCache->set($key, $value, $expiration);
         }
 
-        if ($this->persistentCache->set($key, $value, $expiration)) {
-            $this->nonPersistentCache->set($key, $value, $expiration);
+        $persistentCache = $this->selector->selectPersistentCache($group);
+
+        if ($persistentCache->set($key, $value, $expiration)) {
+            $nonPersistentCache->set($key, $value, $expiration);
 
             return true;
         }
@@ -144,12 +142,16 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
+
         if ($this->selector->isNonPersistentGroup($group)) {
-            return !$this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
+            return !$nonPersistentCache->has($key) && $nonPersistentCache->set($key, $value, $expiration);
         }
 
-        if (!$this->persistentCache->has($key) && $this->persistentCache->set($key, $value, $expiration)) {
-            $this->nonPersistentCache->set($key, $value, $expiration);
+        $persistentCache = $this->selector->selectPersistentCache($group);
+
+        if (!$persistentCache->has($key) && $persistentCache->set($key, $value, $expiration)) {
+            $nonPersistentCache->set($key, $value, $expiration);
 
             return true;
         }
@@ -173,12 +175,16 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
+
         if ($this->selector->isNonPersistentGroup($group)) {
-            return $this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
+            return $nonPersistentCache->has($key) && $nonPersistentCache->set($key, $value, $expiration);
         }
 
-        if ($this->persistentCache->has($key) && $this->persistentCache->set($key, $value, $expiration)) {
-            $this->nonPersistentCache->set($key, $value, $expiration);
+        $persistentCache = $this->selector->selectPersistentCache($group);
+
+        if ($persistentCache->has($key) && $persistentCache->set($key, $value, $expiration)) {
+            $nonPersistentCache->set($key, $value, $expiration);
 
             return true;
         }
@@ -260,14 +266,18 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
+
         if ($this->selector->isNonPersistentGroup($group)) {
             // If the item is not in the cache, return true.
-            return !$this->nonPersistentCache->has($key) || $this->nonPersistentCache->delete($key);
+            return !$nonPersistentCache->has($key) || $nonPersistentCache->delete($key);
         }
 
+        $persistentCache = $this->selector->selectPersistentCache($group);
+
         // If the item is not in the cache, return true.
-        if (!$this->persistentCache->has($key) || $this->persistentCache->delete($key)) {
-            $this->nonPersistentCache->delete($key);
+        if (!$persistentCache->has($key) || $persistentCache->delete($key)) {
+            $nonPersistentCache->delete($key);
 
             return true;
         }
@@ -284,8 +294,8 @@ final class ObjectCache
      */
     public function flush(): bool
     {
-        if ($this->persistentCache->clear()) {
-            $this->nonPersistentCache->clear();
+        if ($this->selector->clearPersistent()) {
+            $this->selector->clearNonPersistent();
 
             return true;
         }
@@ -298,8 +308,8 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @param string $key   The key of the item to delete.
-     * @param string $group Optional. The group of the item to delete. Default 'default'.
+     * @param string $key   The key of the item in the cache.
+     * @param string $group Optional. The group of the item in the cache. Default 'default'.
      * @return bool True if the value is present, false otherwise.
      */
     public function has(string $key, string $group = self::DEFAULT_GROUP): bool
@@ -307,11 +317,15 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
+
         if ($this->selector->isNonPersistentGroup($group)) {
-            return $this->nonPersistentCache->has($key);
+            return $nonPersistentCache->has($key);
         }
 
-        return $this->persistentCache->has($key);
+        $persistentCache = $this->selector->selectPersistentCache($group);
+
+        return $persistentCache->has($key);
     }
 
     /**
@@ -319,48 +333,48 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @param array        $keys   The list of keys for the items in the cache.
-     * @param string|array $groups A group or a list of groups. If a string, it is used for all keys.
-     *                             If an array, it corresponds with the $keys array. Default 'default'.
+     * @param array  $keys  The list of keys for the items in the cache.
+     * @param string $group Optional. The group of the items in the cache. Default 'default'.
+     * @param bool   $force Optional. Whether to force an update of the non-persistent cache
+     *                      from the persistent cache. Default false.
      * @return array List of key => value pairs. For cache misses, false will be used as value.
      */
-    public function getMultiple(array $keys, $groups = self::DEFAULT_GROUP): array
+    public function getMultiple(array $keys, string $group = self::DEFAULT_GROUP, bool $force = false): array
     {
-        $groups              = $this->parseGroupsForKeys($groups, $keys);
-        $nonPersistentGroups = array_filter($groups, array($this,'isNonPersistentGroup'));
+        $group    = $this->parseDefaultGroup($group);
+        $fullKeys = $this->buildKeys($keys, $group);
 
-        $fullKeys = $this->buildKeys($keys, $groups);
-        $groupMap = array_combine($fullKeys, $groups);
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
 
-        // Check the non-persistent cache first.
-        $values = $this->nonPersistentCache->getMultiple($fullKeys);
-
-        // If only non-persistent groups, bail.
-        if (count($groups) === count($nonPersistentGroups)) {
-            return array_combine($keys, $values);
+        if ($this->selector->isNonPersistentGroup($group)) {
+            return array_combine($keys, $nonPersistentCache->getMultiple($fullKeys));
         }
 
-        $needed = array();
-        foreach ($values as $fullKey => $value) {
-            if (false !== $value) {
-                continue;
-            }
+        if (!$force) {
+            $values = $nonPersistentCache->getMultiple($fullKeys);
+            $needed = array();
+            foreach ($values as $fullKey => $value) {
+                if (false !== $value) {
+                    continue;
+                }
 
-            if ($this->selector->isNonPersistentGroup($groupMap[$fullKey])) {
-                continue;
+                $needed[] = $fullKey;
             }
-
-            $needed[] = $fullKey;
+        } else {
+            $values = array();
+            $needed = $fullKeys;
         }
 
         if (!empty($needed)) {
+            $persistentCache = $this->selector->selectPersistentCache($group);
+
             // For cache misses in original lookup, check the persistent cache.
-            $persistentValues = $this->persistentCache->getMultiple($needed);
+            $persistentValues = $persistentCache->getMultiple($needed);
 
             $values = array_merge($values, $persistentValues);
         }
 
-        return $values;
+        return array_combine($keys, $values);
     }
 
     /**
@@ -368,53 +382,32 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @param array        $keys       The list of key => value pairs to store.
-     * @param string|array $groups     A group or a list of groups. If a string, it is used for all keys.
-     *                                 If an array, it corresponds with the $keys array. Default 'default'.
-     * @param int          $expiration Optional. When to expire the value, passed in seconds. Default 0 (no expiration).
+     * @param array  $values     The list of key => value pairs to store.
+     * @param string $group      Optional. The group of the items to store. Default 'default'.
+     * @param int    $expiration Optional. When to expire the value, passed in seconds. Default 0 (no expiration).
      * @return bool True on success, false on failure.
      */
-    public function setMultiple(array $values, $groups = self::DEFAULT_GROUP, int $expiration = 0): bool
+    public function setMultiple(array $values, string $group = self::DEFAULT_GROUP, int $expiration = 0): bool
     {
-        $keys                = array_keys($values);
-        $groups              = $this->parseGroupsForKeys($groups, $keys);
-        $nonPersistentGroups = array_filter($groups, array($this,'isNonPersistentGroup'));
-
-        $fullKeys   = $this->buildKeys($keys, $groups);
+        $group      = $this->parseDefaultGroup($group);
+        $fullKeys   = $this->buildKeys(array_keys($values), $group);
         $fullValues = array_combine($fullKeys, $values);
-        $groupMap   = array_combine($fullKeys, $groups);
 
-        // If only non-persistent groups, set in non-persistent cache and bail.
-        if (count($groups) === count($nonPersistentGroups)) {
-            return $this->nonPersistentCache->setMultiple($fullValues, $expiration);
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
+
+        if ($this->selector->isNonPersistentGroup($group)) {
+            return $nonPersistentCache->setMultiple($fullValues, $expiration);
         }
 
-        // Split values between persistent and non-persistent groups.
-        $nonPersistentNeeded = array();
-        $persistentNeeded    = array();
-        foreach ($fullValues as $fullKey => $value) {
-            if ($this->selector->isNonPersistentGroup($groupMap[$fullKey])) {
-                $nonPersistentNeeded[$fullKey] = $value;
-                continue;
-            }
+        $persistentCache = $this->selector->selectPersistentCache($group);
 
-            $persistentNeeded[$fullKey] = $value;
+        if ($persistentCache->setMultiple($fullValues, $expiration)) {
+            $nonPersistentCache->set($fullValues, $expiration);
+
+            return true;
         }
 
-        $result = true;
-        if (!empty($persistentNeeded)) {
-            $result = $this->persistentCache->setMultiple($persistentNeeded, $expiration);
-            if ($result) {
-                // If persistent successfully set, they also need to be set in non-persistent cache.
-                $nonPersistentNeeded = $fullValues;
-            }
-        }
-
-        if (!empty($nonPersistentNeeded)) {
-            $result = $this->nonPersistentCache->setMultiple($nonPersistentNeeded, $expiration) && $result;
-        }
-
-        return $result;
+        return false;
     }
 
     /**
@@ -422,53 +415,30 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @param array        $keys   The list of keys for the items in the cache to delete.
-     * @param string|array $groups A group or a list of groups. If a string, it is used for all keys.
-     *                             If an array, it corresponds with the $keys array. Default 'default'.
+     * @param array  $keys  The list of keys for the items in the cache to delete.
+     * @param string $group Optional. The group of the items to delete. Default 'default'.
      * @return bool True on success, false on failure.
      */
-    public function deleteMultiple(array $keys, $groups = self::DEFAULT_GROUP): bool
+    public function deleteMultiple(array $keys, string $group = self::DEFAULT_GROUP): bool
     {
-        $groups              = $this->parseGroupsForKeys($groups, $keys);
-        $nonPersistentGroups = array_filter($groups, array($this,'isNonPersistentGroup'));
+        $group    = $this->parseDefaultGroup($group);
+        $fullKeys = $this->buildKeys($keys, $group);
 
-        $fullKeys = $this->buildKeys($keys, $groups);
-        $groupMap = array_combine($fullKeys, $groups);
+        $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
 
-        // Delete from the non-persistent cache first.
-        $result = $this->nonPersistentCache->deleteMultiple($fullKeys);
-
-        // If only non-persistent groups, bail.
-        if (count($groups) === count($nonPersistentGroups)) {
-            return $result;
+        if ($this->selector->isNonPersistentGroup($group)) {
+            return $nonPersistentCache->deleteMultiple($fullKeys);
         }
 
-        $needed = array();
-        foreach ($fullKeys as $fullKey) {
-            if ($this->selector->isNonPersistentGroup($groupMap[$fullKey])) {
-                continue;
-            }
+        $persistentCache = $this->selector->selectPersistentCache($group);
 
-            $needed[] = $fullKey;
+        if ($persistentCache->deleteMultiple($fullKeys)) {
+            $nonPersistentCache->deleteMultiple($fullKeys);
+
+            return true;
         }
 
-        if (!empty($needed)) {
-            $result = $this->persistentCache->deleteMultiple($needed) && $result;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get the key generator used by the object cache.
-     *
-     * @since 1.0.0
-     *
-     * @return WpCacheKeyGen Key generator instance.
-     */
-    public function getKeygen(): WpCacheKeyGen
-    {
-        return $this->keygen;
+        return false;
     }
 
     /**
@@ -476,11 +446,23 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @return WpCacheSelector Selector instance.
+     * @return CacheSelector Selector instance.
      */
-    public function getSelector(): WpCacheSelector
+    public function getSelector(): CacheSelector
     {
         return $this->selector;
+    }
+
+    /**
+     * Get the key generator used by the object cache.
+     *
+     * @since 1.0.0
+     *
+     * @return CacheKeyGen Key generator instance.
+     */
+    public function getKeygen(): CacheKeyGen
+    {
+        return $this->keygen;
     }
 
     /**
@@ -497,50 +479,20 @@ final class ObjectCache
     }
 
     /**
-     * Parses a group or a list of groups for a list of keys.
+     * Builds full cache keys for given keys and a group.
      *
      * @since 1.0.0
      *
-     * @param string|array $groups A group or a list of groups.
-     * @param array        $keys   A list of keys.
-     * @return array List of groups, keyed by their key. The length of the list matches the length of $keys.
-     */
-    private function parseGroupsForKeys($groups, array $keys): array
-    {
-        if (is_string($groups)) {
-            $groups = $this->parseDefaultGroup($groups);
-
-            return array_fill_keys($keys, $groups);
-        }
-
-        $groups = array_map(array($this,'parseDefaultGroup'), $groups);
-
-        $diff = count($keys) - count($groups);
-        if ($diff > 0) {
-            $groups = array_merge($groups, array_fill(0, $diff, self::DEFAULT_GROUP));
-        } elseif ($diff < 0) {
-            $groups = array_slice($groups, 0, $diff);
-        }
-
-        return array_combine($keys, $groups);
-    }
-
-    /**
-     * Builds full cache keys for given keys and groups.
-     *
-     * @since 1.0.0
-     *
-     * @param array $keys   A list of cache keys.
-     * @param array $groups A list of cache groups, keyed by their key. The length of the array must match
-     *                      the length of $keys.
+     * @param array  $keys  A list of cache keys.
+     * @param string $group The cache group for the keys.
      * @return array The list of full cache keys.
      */
-    private function buildKeys(array $keys, array $groups): array
+    private function buildKeys(array $keys, string $group): array
     {
         $fullKeys = array();
 
         foreach ($keys as $key) {
-            $fullKeys[] = $this->keygen->generate($key, $groups[$key]);
+            $fullKeys[] = $this->keygen->generate($key, $group);
         }
 
         return $fullKeys;
