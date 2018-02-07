@@ -11,7 +11,7 @@ namespace LeavesAndLove\WpPsrCache;
 
 use LeavesAndLove\WpPsrCache\CacheAdapter\CacheAdapter;
 use LeavesAndLove\WpPsrCache\CacheKeyGen\WpCacheKeyGen;
-use LeavesAndLove\WpPsrCache\CacheRouter\WpCacheRouter;
+use LeavesAndLove\WpPsrCache\CacheSelector\WpCacheSelector;
 
 /**
  * WordPress object cache class.
@@ -32,8 +32,8 @@ final class ObjectCache
     /** @var WpCacheKeyGen The key generator. */
     private $keygen;
 
-    /** @var WpCacheRouter The router to detect which cache to use. */
-    private $router;
+    /** @var WpCacheSelector The selector to detect which cache to use. */
+    private $selector;
 
     /**
      * Constructor.
@@ -42,17 +42,17 @@ final class ObjectCache
      *
      * @since 1.0.0
      *
-     * @param CacheAdapter  $persistentCache    Adapter for the persistent cache implementation.
-     * @param CacheAdapter  $nonPersistentCache Adapter for the non-persistent cache implementation.
-     * @param WpCacheKeyGen $keygen             Key generator.
-     * @param WpCacheRouter $router             Router to detect which cache to use.
+     * @param CacheAdapter    $persistentCache    Adapter for the persistent cache implementation.
+     * @param CacheAdapter    $nonPersistentCache Adapter for the non-persistent cache implementation.
+     * @param WpCacheKeyGen   $keygen             Key generator.
+     * @param WpCacheSelector $selector           Selector to detect which cache to use.
      */
-    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen, WpCacheRouter $router)
+    public function __construct(CacheAdapter $persistentCache, CacheAdapter $nonPersistentCache, WpCacheKeyGen $keygen, WpCacheSelector $selector)
     {
         $this->persistentCache    = $persistentCache;
         $this->nonPersistentCache = $nonPersistentCache;
         $this->keygen             = $keygen;
-        $this->router             = $router;
+        $this->selector           = $selector;
     }
 
     /**
@@ -75,7 +75,7 @@ final class ObjectCache
 
         $found = false;
 
-        $nonPersistent = $this->router->isNonPersistentGroup($group);
+        $nonPersistent = $this->selector->isNonPersistentGroup($group);
         if ($nonPersistent || !$force) {
             if ($this->nonPersistentCache->has($key)) {
                 $found = true;
@@ -115,7 +115,7 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
-        if ($this->router->isNonPersistentGroup($group)) {
+        if ($this->selector->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
@@ -144,7 +144,7 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
-        if ($this->router->isNonPersistentGroup($group)) {
+        if ($this->selector->isNonPersistentGroup($group)) {
             return !$this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
@@ -173,7 +173,7 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
-        if ($this->router->isNonPersistentGroup($group)) {
+        if ($this->selector->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->has($key) && $this->nonPersistentCache->set($key, $value, $expiration);
         }
 
@@ -260,7 +260,7 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
-        if ($this->router->isNonPersistentGroup($group)) {
+        if ($this->selector->isNonPersistentGroup($group)) {
             // If the item is not in the cache, return true.
             return !$this->nonPersistentCache->has($key) || $this->nonPersistentCache->delete($key);
         }
@@ -307,7 +307,7 @@ final class ObjectCache
         $group = $this->parseDefaultGroup($group);
         $key   = $this->keygen->generate($key, $group);
 
-        if ($this->router->isNonPersistentGroup($group)) {
+        if ($this->selector->isNonPersistentGroup($group)) {
             return $this->nonPersistentCache->has($key);
         }
 
@@ -346,7 +346,7 @@ final class ObjectCache
                 continue;
             }
 
-            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->selector->isNonPersistentGroup($groupMap[$fullKey])) {
                 continue;
             }
 
@@ -393,7 +393,7 @@ final class ObjectCache
         $nonPersistentNeeded = array();
         $persistentNeeded    = array();
         foreach ($fullValues as $fullKey => $value) {
-            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->selector->isNonPersistentGroup($groupMap[$fullKey])) {
                 $nonPersistentNeeded[$fullKey] = $value;
                 continue;
             }
@@ -445,7 +445,7 @@ final class ObjectCache
 
         $needed = array();
         foreach ($fullKeys as $fullKey) {
-            if ($this->router->isNonPersistentGroup($groupMap[$fullKey])) {
+            if ($this->selector->isNonPersistentGroup($groupMap[$fullKey])) {
                 continue;
             }
 
@@ -472,15 +472,15 @@ final class ObjectCache
     }
 
     /**
-     * Get the router used by the object cache.
+     * Get the selector used by the object cache.
      *
      * @since 1.0.0
      *
-     * @return WpCacheRouter Router instance.
+     * @return WpCacheSelector Selector instance.
      */
-    public function getRouter(): WpCacheRouter
+    public function getSelector(): WpCacheSelector
     {
-        return $this->router;
+        return $this->selector;
     }
 
     /**

@@ -1,20 +1,20 @@
 <?php
 /**
- * Interface WpCacheRouter
+ * Interface WpCacheSelector
  *
  * @package LeavesAndLove\WpPsrCache
  * @license GNU General Public License, version 2
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-namespace LeavesAndLove\WpPsrCache\CacheRouter;
+namespace LeavesAndLove\WpPsrCache\CacheSelector;
 
 /**
- * WordPress cache router interface.
+ * WordPress cache selector interface.
  *
  * @since 1.0.0
  */
-interface WpCacheRouter
+interface WpCacheSelector
 {
 
     /**

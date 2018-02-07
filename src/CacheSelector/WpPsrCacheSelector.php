@@ -1,20 +1,20 @@
 <?php
 /**
- * Class WpPsrCacheRouter
+ * Class WpPsrCacheSelector
  *
  * @package LeavesAndLove\WpPsrCache
  * @license GNU General Public License, version 2
  * @link    https://github.com/felixarntz/wp-psr-cache
  */
 
-namespace LeavesAndLove\WpPsrCache\CacheRouter;
+namespace LeavesAndLove\WpPsrCache\CacheSelector;
 
 /**
- * WordPress PSR cache router class.
+ * WordPress PSR cache selector class.
  *
  * @since 1.0.0
  */
-class WpPsrCacheRouter implements WpCacheRouter
+class WpPsrCacheSelector implements WpCacheSelector
 {
 
     /** @var array List of non-persistent cache groups. */
