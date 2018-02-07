@@ -12,6 +12,15 @@ Object cache implementation for WordPress that acts as an adapter for PSR-6 and 
 
 [PSR-6](http://www.php-fig.org/psr/psr-6/) and [PSR-16](http://www.php-fig.org/psr/psr-16/) are standards established by the [PHP-FIG](http://www.php-fig.org/) organization. These standards are commonly used in PHP projects of any kind (WordPress is unfortunately an exception), and since this library acts as an adapter, you can use any compatible caching library of your choice with WordPress now. Popular examples include the [Symfony Cache Component](https://github.com/symfony/cache) or [Stash](https://github.com/tedious/Stash).
 
+## Features
+
+* Any PSR-6 or PSR-16 cache implementation can be used
+* Persistent and non-persistent cache implementations can be individually specified
+* Support for reading/writing/deleting multiple cache keys at once
+* Only checks persistent cache if value not already present in non-persistent cache
+* Full multisite support, including site and network switching
+* Allows registration of further cache implementations for fine-grained control per cache group
+
 ## How to Install
 
 Require this library as a dependency when managing your project with Composer (for example by using [Bedrock](https://github.com/roots/bedrock)). You also have to install an actual [PSR-6](https://packagist.org/providers/psr/cache-implementation) or [PSR-16](https://packagist.org/providers/psr/simple-cache-implementation) cache implementation.
@@ -65,6 +74,8 @@ function wp_psr_start_cache() {
 wp_psr_start_cache();
 
 ```
+
+If you prefer to have more granular control and use more than just one persistent and one non-persistent cache, you can register additional cache adapters using the [`LeavesAndLove\WpPsrCache\CacheSelector\CacheSelector`](https://github.com/felixarntz/wp-psr-cache/blob/master/src/CacheSelector/CacheSelector.php) interface. The implementation used by the object cache can easily be retrieved via `wp_object_cache()->getSelector()`.
 
 ## Requirements
 
