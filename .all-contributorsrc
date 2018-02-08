@@ -1,0 +1,54 @@
+{
+  "projectName": "felixarntz/wp-psr-cache",
+  "projectOwner": "felixarntz",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "felixarntz",
+      "name": "Felix Arntz",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/3531426?v=4",
+      "profile": "https://leaves-and-love.net",
+      "contributions": [
+        "code",
+        "bug",
+        "doc",
+        "example",
+        "ideas",
+        "test"
+      ]
+    },
+    {
+      "login": "schlessera",
+      "name": "Alain Schlesser",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/83631?v=4",
+      "profile": "https://www.alainschlesser.com/",
+      "contributions": [
+        "code",
+        "bug",
+        "review"
+      ]
+    },
+    {
+      "login": "tfrommen",
+      "name": "Thorsten Frommen",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/6049306?v=4",
+      "profile": "https://tfrommen.de",
+      "contributions": [
+        "review"
+      ]
+    },
+    {
+      "login": "moorscode",
+      "name": "Jip",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/2005352?v=4",
+      "profile": "http://www.jipmoors.nl",
+      "contributions": [
+        "ideas"
+      ]
+    }
+  ]
+}

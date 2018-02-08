@@ -1,4 +1,5 @@
 [![Build Status](https://api.travis-ci.org/felixarntz/wp-psr-cache.png?branch=master)](https://travis-ci.org/felixarntz/wp-psr-cache)
+[![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors)
 [![Code Climate](https://codeclimate.com/github/felixarntz/wp-psr-cache/badges/gpa.svg)](https://codeclimate.com/github/felixarntz/wp-psr-cache)
 [![Test Coverage](https://codeclimate.com/github/felixarntz/wp-psr-cache/badges/coverage.svg)](https://codeclimate.com/github/felixarntz/wp-psr-cache/coverage)
 [![Latest Stable Version](https://poser.pugx.org/felixarntz/wp-psr-cache/version)](https://packagist.org/packages/felixarntz/wp-psr-cache)
@@ -80,3 +81,15 @@ If you prefer to have more granular control and use more than just one persisten
 ## Requirements
 
 * PHP >= 7.0
+
+## Contributors
+
+Thanks goes to these wonderful people ([emoji key](https://github.com/kentcdodds/all-contributors#emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore -->
+| [<img src="https://avatars1.githubusercontent.com/u/3531426?v=4" width="100px;"/><br /><sub><b>Felix Arntz</b></sub>](https://leaves-and-love.net)<br />[💻](https://github.com/felixarntz/felixarntz/wp-psr-cache/commits?author=felixarntz "Code") [🐛](https://github.com/felixarntz/felixarntz/wp-psr-cache/issues?q=author%3Afelixarntz "Bug reports") [📖](https://github.com/felixarntz/felixarntz/wp-psr-cache/commits?author=felixarntz "Documentation") [💡](#example-felixarntz "Examples") [🤔](#ideas-felixarntz "Ideas, Planning, & Feedback") [⚠️](https://github.com/felixarntz/felixarntz/wp-psr-cache/commits?author=felixarntz "Tests") | [<img src="https://avatars1.githubusercontent.com/u/83631?v=4" width="100px;"/><br /><sub><b>Alain Schlesser</b></sub>](https://www.alainschlesser.com/)<br />[💻](https://github.com/felixarntz/felixarntz/wp-psr-cache/commits?author=schlessera "Code") [🐛](https://github.com/felixarntz/felixarntz/wp-psr-cache/issues?q=author%3Aschlessera "Bug reports") [👀](#review-schlessera "Reviewed Pull Requests") | [<img src="https://avatars2.githubusercontent.com/u/6049306?v=4" width="100px;"/><br /><sub><b>Thorsten Frommen</b></sub>](https://tfrommen.de)<br />[👀](#review-tfrommen "Reviewed Pull Requests") | [<img src="https://avatars0.githubusercontent.com/u/2005352?v=4" width="100px;"/><br /><sub><b>Jip</b></sub>](http://www.jipmoors.nl)<br />[🤔](#ideas-moorscode "Ideas, Planning, & Feedback") |
+| :---: | :---: | :---: | :---: |
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/kentcdodds/all-contributors) specification. Contributions of any kind welcome!
