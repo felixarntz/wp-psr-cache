@@ -38,6 +38,8 @@ After the installation, you need to move the `includes/object-cache.php` file in
 
 Then, replace the inline comment in the `object-cache.php` file with the actual instantiations of the classes you want to use. You need to provide two implementations, one for the persistent cache and another for the non-persistent cache.
 
+To prevent conflicts with multiple WordPress installations accessing the same cache service, it is recommended to define a unique `WP_CACHE_KEY_SALT` constant in your `wp-config.php` file.
+
 ### Example
 
 The following example uses the `symfony/cache` library, so you have to require it in your `composer.json`. It then uses that library's Memcached implementation as persistent cache and its array storage as non-persistent cache.
