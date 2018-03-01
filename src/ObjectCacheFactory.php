@@ -29,7 +29,10 @@ final class ObjectCacheFactory
     public function create(CacheSelector $selector, CacheKeyGen $keygen = null): ObjectCache
     {
         if (null === $keygen) {
-            $keygen = new WpPsrCacheKeyGen(get_current_blog_id(), get_current_network_id());
+            // In multisite, calling `get_current_network_id()` this early will cause a fatal error.
+            $networkId = (!is_multisite() || function_exists('get_network')) ? get_current_network_id() : 0;
+
+            $keygen = new WpPsrCacheKeyGen(get_current_blog_id(), $networkId);
         }
 
         return new ObjectCache($selector, $keygen);

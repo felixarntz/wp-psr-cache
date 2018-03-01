@@ -45,6 +45,15 @@ interface WpCacheKeyGen extends CacheKeyGen
     public function switchSiteContext(int $siteId);
 
     /**
+     * Get the site context.
+     *
+     * @since 1.0.0
+     *
+     * @return int Site ID of the current context.
+     */
+    public function getSiteContext(): int;
+
+    /**
      * Switch the network context.
      *
      * @since 1.0.0
@@ -52,4 +61,13 @@ interface WpCacheKeyGen extends CacheKeyGen
      * @param int $networkId Network ID to switch the context to.
      */
     public function switchNetworkContext(int $networkId);
+
+    /**
+     * Get the network context.
+     *
+     * @since 1.0.0
+     *
+     * @return int Network ID of the current context.
+     */
+    public function getNetworkContext(): int;
 }

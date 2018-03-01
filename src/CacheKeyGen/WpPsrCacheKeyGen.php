@@ -107,6 +107,18 @@ class WpPsrCacheKeyGen implements WpCacheKeyGen
     }
 
     /**
+     * Get the site context.
+     *
+     * @since 1.0.0
+     *
+     * @return int Site ID of the current context.
+     */
+    public function getSiteContext(): int
+    {
+        return $this->siteId;
+    }
+
+    /**
      * Switch the network context.
      *
      * @since 1.0.0
@@ -116,6 +128,18 @@ class WpPsrCacheKeyGen implements WpCacheKeyGen
     public function switchNetworkContext(int $networkId)
     {
         $this->networkId = $networkId;
+    }
+
+    /**
+     * Get the network context.
+     *
+     * @since 1.0.0
+     *
+     * @return int Network ID of the current context.
+     */
+    public function getNetworkContext(): int
+    {
+        return $this->networkId;
     }
 
     /**
