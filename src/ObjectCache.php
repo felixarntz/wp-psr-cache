@@ -29,6 +29,12 @@ final class ObjectCache
     /** @var CacheKeyGen The key generator. */
     private $keygen;
 
+    /** @var int Amount of times the cache data was already stored in the cache. */
+    private $cacheHits = 0;
+
+    /** @var int Amount of times the cache data was not stored in the cache. */
+    private $cacheMisses = 0;
+
     /**
      * Constructor.
      *
@@ -70,11 +76,13 @@ final class ObjectCache
         $nonPersistent = $this->selector->isNonPersistentGroup($group);
         if ($nonPersistent || !$force) {
             if ($nonPersistentCache->has($key)) {
+                $this->cacheHits++;
                 $found = true;
                 return $nonPersistentCache->get($key);
             }
 
             if ($nonPersistent) {
+                $this->cacheMisses++;
                 return false;
             }
         }
@@ -82,6 +90,7 @@ final class ObjectCache
         $persistentCache = $this->selector->selectPersistentCache($group);
 
         if ($persistentCache->has($key)) {
+            $this->cacheHits++;
             $found = true;
             $value = $persistentCache->get($key);
 
@@ -90,6 +99,7 @@ final class ObjectCache
             return $value;
         }
 
+        $this->cacheMisses++;
         return false;
     }
 
@@ -347,7 +357,10 @@ final class ObjectCache
         $nonPersistentCache = $this->selector->selectNonPersistentCache($group);
 
         if ($this->selector->isNonPersistentGroup($group)) {
-            return array_combine($keys, $nonPersistentCache->getMultiple($fullKeys));
+            $values = array_combine($keys, $nonPersistentCache->getMultiple($fullKeys));
+
+            $this->checkMultipleHitsAndMisses($values);
+            return $values;
         }
 
         if (!$force) {
@@ -374,7 +387,10 @@ final class ObjectCache
             $values = array_merge($values, $persistentValues);
         }
 
-        return array_combine($keys, $values);
+        $values = array_combine($keys, $values);
+
+        $this->checkMultipleHitsAndMisses($values);
+        return $values;
     }
 
     /**
@@ -466,6 +482,30 @@ final class ObjectCache
     }
 
     /**
+     * Gets the amount of times the cache data was already stored in the cache.
+     *
+     * @since 1.0.0
+     *
+     * @return int Amount of cache hits.
+     */
+    public function getCacheHits(): int
+    {
+        return $this->cacheHits;
+    }
+
+    /**
+     * Gets the amount of times the cache data was not stored in the cache.
+     *
+     * @since 1.0.0
+     *
+     * @return int Amount of cache misses.
+     */
+    public function getCacheMisses(): int
+    {
+        return $this->cacheMisses;
+    }
+
+    /**
      * Get the default group in case the passed group is empty.
      *
      * @since 1.0.0
@@ -496,5 +536,22 @@ final class ObjectCache
         }
 
         return $fullKeys;
+    }
+
+    /**
+     * Increases the cache hits and misses by evaluating a result for multiple cache keys.
+     *
+     * @since 1.0.0
+     *
+     * @param array $values Array of $key => $value pairs as a cache lookup result.
+     */
+    private function checkMultipleHitsAndMisses(array $values)
+    {
+        $foundValues = array_filter($values, function($value) {
+            return false !== $value;
+        });
+
+        $this->cacheHits   += count($foundValues);
+        $this->cacheMisses += count($values) - count($foundValues);
     }
 }
