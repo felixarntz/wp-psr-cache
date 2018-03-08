@@ -506,6 +506,25 @@ final class ObjectCache
     }
 
     /**
+     * Output cache-related stats.
+     *
+     * @since 1.0.0
+     */
+    public function stats()
+    {
+        $out = array();
+
+        $out[] = '<p>';
+        $out[] = '<strong>Cache Hits:</strong> ' . $this->cacheHits . '<br>';
+        $out[] = '<strong>Cache Misses:</strong> ' . $this->cacheMisses . '<br>';
+        $out[] = '<strong>Persistent Cache Client:</strong> <code>' . get_class( $this->selector->selectPersistentCache( '' )->getClient() ) . '</code><br>';
+        $out[] = '<strong>Non-Persistent Cache Client:</strong> <code>' . get_class( $this->selector->selectNonPersistentCache( '' )->getClient() ) . '</code>';
+        $out[] = '</p>';
+
+        echo implode( PHP_EOL, $out );
+    }
+
+    /**
      * Magic getter.
      *
      * Allows for backward-compatibility with plugins still doing it wrong.
