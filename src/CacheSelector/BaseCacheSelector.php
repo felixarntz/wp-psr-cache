@@ -134,6 +134,18 @@ class BaseCacheSelector implements CacheSelector
     }
 
     /**
+     * Gets the list of non-persistent groups.
+     *
+     * @since 1.0.0
+     *
+     * @return array List of non-persistent groups.
+     */
+    public function getNonPersistentGroups(): array
+    {
+        return array_keys($this->nonPersistentGroups);
+    }
+
+    /**
      * Determine whether a cache group is non-persistent.
      *
      * @since 1.0.0

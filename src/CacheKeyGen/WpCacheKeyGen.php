@@ -27,6 +27,15 @@ interface WpCacheKeyGen extends CacheKeyGen
     public function addGlobalGroups(array $groups);
 
     /**
+     * Gets the list of global groups.
+     *
+     * @since 1.0.0
+     *
+     * @return array List of global groups.
+     */
+    public function getGlobalGroups(): array;
+
+    /**
      * Add cache groups to consider network groups.
      *
      * @since 1.0.0
@@ -34,6 +43,15 @@ interface WpCacheKeyGen extends CacheKeyGen
      * @param array $groups The list of groups that are network-specific.
      */
     public function addNetworkGroups(array $groups);
+
+    /**
+     * Gets the list of network groups.
+     *
+     * @since 1.0.0
+     *
+     * @return array List of network groups.
+     */
+    public function getNetworkGroups(): array;
 
     /**
      * Switch the site context.

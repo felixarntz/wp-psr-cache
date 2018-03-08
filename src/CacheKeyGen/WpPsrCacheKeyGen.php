@@ -86,6 +86,18 @@ class WpPsrCacheKeyGen implements WpCacheKeyGen
     }
 
     /**
+     * Gets the list of global groups.
+     *
+     * @since 1.0.0
+     *
+     * @return array List of global groups.
+     */
+    public function getGlobalGroups(): array
+    {
+        return array_keys($this->globalGroups);
+    }
+
+    /**
      * Add cache groups to consider network groups.
      *
      * @since 1.0.0
@@ -96,6 +108,18 @@ class WpPsrCacheKeyGen implements WpCacheKeyGen
     {
         $groups              = array_fill_keys($groups, true);
         $this->networkGroups = array_merge($this->networkGroups, $groups);
+    }
+
+    /**
+     * Gets the list of network groups.
+     *
+     * @since 1.0.0
+     *
+     * @return array List of network groups.
+     */
+    public function getNetworkGroups(): array
+    {
+        return array_keys($this->networkGroups);
     }
 
     /**
