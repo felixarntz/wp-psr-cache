@@ -100,4 +100,13 @@ interface CacheAdapter
      * @return bool True on success, false on failure.
      */
     public function clear(): bool;
+
+    /**
+     * Get the cache client instance used by the adapter.
+     *
+     * @since 1.0.0
+     *
+     * @return object Cache client instance.
+     */
+    public function getClient();
 }

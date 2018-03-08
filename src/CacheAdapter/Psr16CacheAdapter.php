@@ -153,4 +153,16 @@ class Psr16CacheAdapter implements CacheAdapter
     {
         return $this->cache->clear();
     }
+
+    /**
+     * Get the cache client instance used by the adapter.
+     *
+     * @since 1.0.0
+     *
+     * @return object Cache client instance.
+     */
+    public function getClient()
+    {
+        return $this->cache;
+    }
 }
