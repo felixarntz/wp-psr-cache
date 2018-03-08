@@ -506,6 +506,77 @@ final class ObjectCache
     }
 
     /**
+     * Magic getter.
+     *
+     * Allows for backward-compatibility with plugins still doing it wrong.
+     *
+     * @since 1.0.0
+     *
+     * @param string $name Property to get.
+     * @return mixed Property value.
+     */
+    public function __get(string $name)
+    {
+        switch($name) {
+            case 'cache_hits':
+                return $this->cacheHits;
+            case 'cache_misses':
+                return $this->cacheMisses;
+            case 'global_groups':
+                return $this->keygen->getGlobalGroups();
+            case 'non_persistent_groups':
+                return $this->selector->getNonPersistentGroups();
+        }
+    }
+
+    /**
+     * Magic setter.
+     *
+     * Allows for backward-compatibility with plugins still doing it wrong.
+     *
+     * @since 1.0.0
+     *
+     * @param string $name  Property to set.
+     * @param mixed  $value Property value.
+     */
+    public function __set(string $name, $value)
+    {
+        switch($name) {
+            case 'cache_hits':
+                $this->cacheHits = (int) $value;
+            case 'cache_misses':
+                $this->cacheMisses = (int) $value;
+            case 'global_groups':
+                $this->keygen->addGlobalGroups((array) $value);
+            case 'non_persistent_groups':
+                $this->selector->addNonPersistentGroups((array) $value);
+        }
+    }
+
+    /**
+     * Magic isset-er.
+     *
+     * Allows for backward-compatibility with plugins still doing it wrong.
+     *
+     * @since 1.0.0
+     *
+     * @param string $name  Property to check if set.
+     * @return bool True if property is set, false otherwise.
+     */
+    public function __isset(string $name): bool
+    {
+        switch($name) {
+            case 'cache_hits':
+            case 'cache_misses':
+            case 'global_groups':
+            case 'non_persistent_groups':
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get the default group in case the passed group is empty.
      *
      * @since 1.0.0
