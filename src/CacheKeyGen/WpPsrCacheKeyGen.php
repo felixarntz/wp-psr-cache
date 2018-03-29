@@ -65,8 +65,8 @@ class WpPsrCacheKeyGen implements WpCacheKeyGen
                 $key = 'site.' . $this->siteId . '.' . $group . '.' . $key;
         }
 
-        if (defined('WP_CACHE_KEY_SALT') && !empty(WP_CACHE_KEY_SALT)) {
-            $key = WP_CACHE_KEY_SALT . '.' . $key;
+        if (defined('WP_CACHE_KEY_PREFIX') && !empty(WP_CACHE_KEY_PREFIX)) {
+            $key = WP_CACHE_KEY_PREFIX . '.' . $key;
         }
 
         return $this->sanitize($key);

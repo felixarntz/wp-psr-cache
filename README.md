@@ -38,7 +38,7 @@ After the installation, you need to move the `includes/object-cache.php` file in
 
 Then, replace the inline comment in the `object-cache.php` file with the actual instantiations of the classes you want to use. You need to provide two implementations, one for the persistent cache and another for the non-persistent cache.
 
-To prevent conflicts with multiple WordPress installations accessing the same cache service, it is recommended to define a unique `WP_CACHE_KEY_SALT` constant in your `wp-config.php` file.
+To prevent conflicts with multiple WordPress installations accessing the same cache service, it is recommended to define a unique `WP_CACHE_KEY_PREFIX` constant in your `wp-config.php` file.
 
 ### Example
 
