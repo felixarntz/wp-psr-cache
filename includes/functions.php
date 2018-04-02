@@ -362,7 +362,7 @@ function wp_cache_switch_to_blog( $blog_id ) {
     // When `wp_cache_switch_to_blog()` is called right after multisite initialization, it must set the network.
     $keygen = wp_object_cache()->getKeygen();
     if ( 0 === $keygen->getNetworkContext() ) {
-        if ( (int) $blog_id === (int) $GLOBALS['current_blog']->id ) {
+        if ( ! empty( $GLOBALS['current_blog'] ) && (int) $blog_id === (int) $GLOBALS['current_blog']->id ) {
             $site = $GLOBALS['current_blog'];
         } else {
             $site = get_site( $blog_id );
